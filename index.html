@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOpis</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>BOpis</h1>
+        <div class="header-controls">
+            <div class="toggle-group">
+                <span>Stay Awake</span>
+                <label class="switch">
+                    <input type="checkbox" id="wake-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="toggle-group">
+                <span>Dark Mode</span>
+                <label class="switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <div class="nav-container">
+        <button class="hamburger" id="hamburger-btn">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="tabs" id="nav-tabs">
+            <button class="tab-btn active" data-target="alarm">Alarm Clock</button>
+            <button class="tab-btn" data-target="timezones">U.S Time Zones</button>
+            <button class="tab-btn" data-target="webcam">Floating Webcam</button>
+            <button class="tab-btn" data-target="calculator">Calculator</button>
+            <button class="tab-btn" data-target="notes">Quick Notes</button>
+        </nav>
+    </div>
+
+    <main class="panel-container">
+        <!-- 1. Alarm Clock -->
+        <section id="alarm" class="tab-panel active">
+            <h2>Alarm Clock</h2>
+            <div class="tool-content">
+                
+                <div class="digital-clock-container">
+                    <div id="digital-time">--:--:--</div>
+                    <div id="digital-date">---</div>
+                </div>
+
+                <div class="alarm-controls">
+                    <input type="time" id="alarm-time">
+                    <select id="alarm-ringtone" class="minimal-select">
+                        <option value="beep">Classic Beep</option>
+                        <option value="chime">Gentle Chime</option>
+                        <option value="siren">Emergency Siren</option>
+                    </select>
+                    <button id="set-alarm-btn">Set Alarm</button>
+                    <button id="stop-alarm-btn" class="danger-btn" style="display: none;">Stop Ringing</button>
+                </div>
+                <p id="alarm-status">No alarm set.</p>
+            </div>
+        </section>
+
+        <!-- 2. U.S Time Zones -->
+        <section id="timezones" class="tab-panel">
+            <h2>U.S Time Zones</h2>
+            <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem;">Hover over a state to see its time zone.</p>
+            <div class="tool-content table-container">
+                <table class="excel-table">
+                    <thead>
+                        <tr>
+                            <th>State</th>
+                            <th>Abbr</th>
+                            <th>Current Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timezone-tbody">
+                        <!-- Populated dynamically by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 3. Floating Webcam -->
+        <section id="webcam" class="tab-panel">
+            <h2>Floating Webcam</h2>
+            <div class="tool-content">
+                <p>Start the webcam, then click "Pop Out" to make it float anywhere on your screen.</p>
+                <video id="webcam-video" autoplay playsinline muted></video>
+                <div class="btn-group">
+                    <button id="start-webcam-btn">Start Webcam</button>
+                    <button id="pip-btn" disabled>Pop Out (Picture-in-Picture)</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Calculator -->
+        <section id="calculator" class="tab-panel">
+            <h2>Calculator</h2>
+            <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem;">Type anywhere to calculate. Use Numpad, Enter, and Backspace.</p>
+            
+            <div class="tool-content calc-layout">
+                <div class="calc-main">
+                    <input type="text" id="calc-display" disabled placeholder="0">
+                    
+                    <div class="calc-operators">
+                        <button class="calc-btn danger-btn" onclick="clearCalc()">C</button>
+                        <button class="calc-btn" onclick="appendCalc('/')">/</button>
+                        <button class="calc-btn" onclick="appendCalc('*')">*</button>
+                        <button class="calc-btn" onclick="appendCalc('-')">-</button>
+                        <button class="calc-btn" onclick="appendCalc('+')">+</button>
+                        <button class="calc-btn calc-primary" onclick="calculateResult()">=</button>
+                    </div>
+
+                    <button id="toggle-numpad-btn" class="outline-btn">Show On-Screen Numpad</button>
+                    
+                    <div id="calc-numpad" class="calc-numpad hidden">
+                        <button class="calc-btn" onclick="appendCalc('7')">7</button>
+                        <button class="calc-btn" onclick="appendCalc('8')">8</button>
+                        <button class="calc-btn" onclick="appendCalc('9')">9</button>
+                        <button class="calc-btn" onclick="appendCalc('4')">4</button>
+                        <button class="calc-btn" onclick="appendCalc('5')">5</button>
+                        <button class="calc-btn" onclick="appendCalc('6')">6</button>
+                        <button class="calc-btn" onclick="appendCalc('1')">1</button>
+                        <button class="calc-btn" onclick="appendCalc('2')">2</button>
+                        <button class="calc-btn" onclick="appendCalc('3')">3</button>
+                        <button class="calc-btn numpad-zero" onclick="appendCalc('0')">0</button>
+                        <button class="calc-btn" onclick="appendCalc('.')">.</button>
+                    </div>
+                </div>
+
+                <div class="calc-history-pane">
+                    <div class="history-header">
+                        <h3>History</h3>
+                        <button id="clear-history-btn" class="text-btn">Clear</button>
+                    </div>
+                    <ul id="calc-history-list">
+                        <!-- History items appended here -->
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Quick Notes -->
+        <section id="notes" class="tab-panel">
+            <h2>Quick Notes</h2>
+            <div class="tool-content">
+                <p>Notes auto-save as you type.</p>
+                <textarea id="note-area" placeholder="Type your notes here..."></textarea>
+            </div>
+        </section>
+    </main>
+
+    <!-- NEW: Subtle Footer -->
+    <footer class="app-footer">
+        &copy; 2026 Meglen
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
