@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOpis</title>
+    <title>Multi-Tool Dashboard</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
-        <h1>BOpis</h1>
+        <h1>My Dashboard</h1>
         <div class="header-controls">
             <div class="toggle-group">
                 <span>Stay Awake</span>
@@ -55,14 +55,26 @@
 
                 <div class="alarm-controls">
                     <input type="time" id="alarm-time">
+                    
                     <select id="alarm-ringtone" class="minimal-select">
                         <option value="beep">Classic Beep</option>
                         <option value="chime">Gentle Chime</option>
                         <option value="siren">Emergency Siren</option>
+                        <option value="direct-url">Direct Web Link (Dropbox/Discord)</option>
                     </select>
+
+                    <label class="checkbox-label" id="loop-container">
+                        <input type="checkbox" id="alarm-loop" checked> Loop Ringing
+                    </label>
+
                     <button id="set-alarm-btn">Set Alarm</button>
+                    <button id="cancel-alarm-btn" class="outline-btn" style="display: none; margin-bottom: 0; width: auto;">Cancel Alarm</button>
                     <button id="stop-alarm-btn" class="danger-btn" style="display: none;">Stop Ringing</button>
                 </div>
+
+                <input type="url" id="custom-url-input" placeholder="Paste Dropbox (?raw=1) or Discord link here" class="hidden-input">
+                
+                <p id="alarm-countdown" style="display: none; font-size: 1.1rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;"></p>
                 <p id="alarm-status">No alarm set.</p>
             </div>
         </section>
@@ -95,15 +107,17 @@
                 <video id="webcam-video" autoplay playsinline muted></video>
                 <div class="btn-group">
                     <button id="start-webcam-btn">Start Webcam</button>
+                    <button id="stop-webcam-btn" class="danger-btn" disabled>Turn Off Camera</button>
                     <button id="pip-btn" disabled>Pop Out (Picture-in-Picture)</button>
+                    <button id="capture-btn" disabled>📸 Copy Image</button>
                 </div>
             </div>
         </section>
 
-        <!-- 4. Calculator -->
+        <!-- 4. Calculator (Updated with 4-Column Grid & Split Operator) -->
         <section id="calculator" class="tab-panel">
             <h2>Calculator</h2>
-            <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem;">Type anywhere to calculate. Use Numpad, Enter, and Backspace.</p>
+            <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem;">Type anywhere to calculate. Use Numpad, Enter, Backspace, and "S" for Tricky Div.</p>
             
             <div class="tool-content calc-layout">
                 <div class="calc-main">
@@ -115,6 +129,7 @@
                         <button class="calc-btn" onclick="appendCalc('*')">*</button>
                         <button class="calc-btn" onclick="appendCalc('-')">-</button>
                         <button class="calc-btn" onclick="appendCalc('+')">+</button>
+                        <button class="calc-btn calc-split" onclick="appendCalc(' Split ')">Tricky Div ( Split )</button>
                         <button class="calc-btn calc-primary" onclick="calculateResult()">=</button>
                     </div>
 
@@ -157,7 +172,6 @@
         </section>
     </main>
 
-    <!-- NEW: Subtle Footer -->
     <footer class="app-footer">
         &copy; 2026 Meglen
     </footer>
