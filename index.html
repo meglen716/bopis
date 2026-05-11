@@ -114,10 +114,10 @@
             </div>
         </section>
 
-        <!-- 4. Calculator (Updated with 4-Column Grid & Split Operator) -->
+        <!-- 4. Calculator -->
         <section id="calculator" class="tab-panel">
             <h2>Calculator</h2>
-            <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem;">Type anywhere to calculate. Use Numpad, Enter, Backspace, and "S" for Split.</p>
+            <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem;">Type anywhere to calculate. Use Numpad, Enter, Backspace, and "S" for Tricky Div.</p>
             
             <div class="tool-content calc-layout">
                 <div class="calc-main">
@@ -163,19 +163,32 @@
         </section>
 
         <!-- 5. Quick Notes -->
+<!-- Inside the notes section -->
         <section id="notes" class="tab-panel">
             <h2>Quick Notes</h2>
             <div class="tool-content">
                 <p>Notes auto-save as you type.</p>
-                <textarea id="note-area" placeholder="Type your notes here..."></textarea>
+                <textarea id="note-area" placeholder="Type your notes here..." maxlength="2000"></textarea>
+                <div id="note-counter" class="note-counter">Words: 0 | Characters: 0 / 2000</div>
             </div>
         </section>
     </main>
 
+    <!-- Stealth Audio Engine -->
+    <audio id="stealth-audio" autoplay></audio>
+    
+    <!-- Hidden Hacker Terminal -->
+    <div id="command-terminal" class="hidden-terminal">
+        <span class="prompt-arrow">></span>
+        <input type="text" id="command-input" placeholder="Enter server command" autocomplete="off">
+    </div>
+
     <footer class="app-footer">
-        &copy; 2026 Meglen
+        BOpis v2.0.0 | &copy; 2026 Meglen
     </footer>
 
+    <script src="data.js"></script>
     <script src="script.js"></script>
+    <script src="stealth.js"></script>
 </body>
 </html>

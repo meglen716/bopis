@@ -41,33 +41,57 @@ tabBtns.forEach(btn => {
     });
 });
 
-// --- Stay Awake Toggle (Wake Lock API) ---
+// --- Stay Awake Toggle (Wake Lock API & Persistence) ---
 let wakeLock = null;
 const wakeToggle = document.getElementById('wake-toggle');
 
-wakeToggle.addEventListener('change', async (e) => {
+// 1. The function to request the lock safely
+async function requestWakeLock() {
+    if (!('wakeLock' in navigator)) {
+        console.warn('Wake Lock API not supported.');
+        return;
+    }
+    try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        console.log('BOpis Wake Lock: ACTIVE');
+    } catch (err) {
+        console.error(`Wake Lock error: ${err.message}`);
+        // If the browser blocks it, uncheck the toggle
+        wakeToggle.checked = false;
+        localStorage.setItem('stay_awake', 'off');
+    }
+}
+
+// 2. Check memory when the page first loads
+if (localStorage.getItem('stay_awake') === 'on') {
+    wakeToggle.checked = true;
+    requestWakeLock();
+}
+
+// 3. Handle manual clicks on the toggle
+wakeToggle.addEventListener('change', (e) => {
     if (e.target.checked) {
-        if (!('wakeLock' in navigator)) {
-            alert('Screen Wake Lock API not supported in this browser.');
-            wakeToggle.checked = false;
-            return;
-        }
-        try {
-            wakeLock = await navigator.wakeLock.request('screen');
-            wakeLock.addEventListener('release', () => { wakeToggle.checked = false; });
-        } catch (err) {
-            alert(`Wake Lock error: ${err.message}`);
-            wakeToggle.checked = false;
-        }
+        localStorage.setItem('stay_awake', 'on');
+        requestWakeLock();
     } else {
+        localStorage.setItem('stay_awake', 'off');
         if (wakeLock !== null) {
             wakeLock.release();
             wakeLock = null;
+            console.log('BOpis Wake Lock: DISABLED');
         }
     }
 });
 
-// --- 1. Alarm Clock (Audio, Persistence, Countdown, Direct URL) ---
+// 4. The Visibility Watcher (Restores lock after switching tabs)
+document.addEventListener('visibilitychange', () => {
+
+    if (document.visibilityState === 'visible' && localStorage.getItem('stay_awake') === 'on') {
+        requestWakeLock(); // Instantly turn the lock back on!
+    }
+});
+
+// --- 1. Alarm Clock ---
 const alarmInput = document.getElementById('alarm-time');
 const ringtoneSelect = document.getElementById('alarm-ringtone');
 const customUrlInput = document.getElementById('custom-url-input');
@@ -88,16 +112,13 @@ let customAudio = new Audio();
 function playTone(type) {
     if (type === 'direct-url') {
         const url = customUrlInput.value;
-        if (!url) {
-            alert("Please paste a valid web link first.");
-            return;
-        }
+        if (!url) return alert("Please paste a valid web link first.");
+        
         customAudio.src = url;
         customAudio.currentTime = 0;
         customAudio.loop = loopCheckbox.checked; 
-
         customAudio.play().catch(e => {
-            alert("Could not play the link. If using Dropbox, ensure the link ends with ?raw=1");
+            alert("Could not play the link. Ensure the link is valid.");
             console.error(e);
         });
         return;
@@ -190,7 +211,7 @@ function updateCountdownUI() {
 
 function initiateAlarm(time, ringtone, customUrl, isLooping, isRestoring = false) {
     if (ringtone === 'direct-url' && !customUrl) {
-        alert("Please provide a valid web link.");
+        alert("Please provide a valid direct link.");
         return;
     }
 
@@ -209,10 +230,7 @@ function initiateAlarm(time, ringtone, customUrl, isLooping, isRestoring = false
 
     if (!isRestoring) {
         localStorage.setItem('saved_alarm', JSON.stringify({ 
-            time, 
-            ringtone, 
-            customUrl, 
-            isLooping
+            time, ringtone, customUrl, isLooping
         }));
     }
 }
@@ -304,63 +322,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 // --- 2. Big Digital Clock & U.S Time Zones ---
-const usStates = [
-    { name: "Alabama", abbr: "AL", tz: "America/Chicago", tzName: "Central Time" },
-    { name: "Alaska", abbr: "AK", tz: "America/Anchorage", tzName: "Alaska Time" },
-    { name: "Arizona", abbr: "AZ", tz: "America/Phoenix", tzName: "Mountain Time (No DST)" },
-    { name: "Arkansas", abbr: "AR", tz: "America/Chicago", tzName: "Central Time" },
-    { name: "California", abbr: "CA", tz: "America/Los_Angeles", tzName: "Pacific Time" },
-    { name: "Colorado", abbr: "CO", tz: "America/Denver", tzName: "Mountain Time" },
-    { name: "Connecticut", abbr: "CT", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "Delaware", abbr: "DE", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "Florida", abbr: "FL", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "Georgia", abbr: "GA", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "Hawaii", abbr: "HI", tz: "Pacific/Honolulu", tzName: "Hawaii-Aleutian Time" },
-    { name: "Idaho", abbr: "ID", tz: "America/Boise", tzName: "Mountain Time" },
-    { name: "Illinois", abbr: "IL", tz: "America/Chicago", tzName: "Central Time" },
-    { name: "Indiana", abbr: "IN", tz: "America/Indiana/Indianapolis", tzName: "Eastern Time" },
-    { name: "Iowa", abbr: "IA", tz: "America/Chicago", tzName: "Central Time" },
-    { name: "Kansas", abbr: "KS", tz: "America/Chicago", tzName: "Central Time" },
-    { name: "Kentucky", abbr: "KY", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "Louisiana", abbr: "LA", tz: "America/Chicago", tzName: "Central Time" },
-    { name: "Maine", abbr: "ME", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "Maryland", abbr: "MD", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "Massachusetts", abbr: "MA", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "Michigan", abbr: "MI", tz: "America/Detroit", tzName: "Eastern Time" },
-    { name: "Minnesota", abbr: "MN", tz: "America/Chicago", tzName: "Central Time" },
-    { name: "Mississippi", abbr: "MS", tz: "America/Chicago", tzName: "Central Time" },
-    { name: "Missouri", abbr: "MO", tz: "America/Chicago", tzName: "Central Time" },
-    { name: "Montana", abbr: "MT", tz: "America/Denver", tzName: "Mountain Time" },
-    { name: "Nebraska", abbr: "NE", tz: "America/Chicago", tzName: "Central Time" },
-    { name: "Nevada", abbr: "NV", tz: "America/Los_Angeles", tzName: "Pacific Time" },
-    { name: "New Hampshire", abbr: "NH", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "New Jersey", abbr: "NJ", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "New Mexico", abbr: "NM", tz: "America/Denver", tzName: "Mountain Time" },
-    { name: "New York", abbr: "NY", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "North Carolina", abbr: "NC", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "North Dakota", abbr: "ND", tz: "America/Chicago", tzName: "Central Time" },
-    { name: "Ohio", abbr: "OH", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "Oklahoma", abbr: "OK", tz: "America/Chicago", tzName: "Central Time" },
-    { name: "Oregon", abbr: "OR", tz: "America/Los_Angeles", tzName: "Pacific Time" },
-    { name: "Pennsylvania", abbr: "PA", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "Rhode Island", abbr: "RI", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "South Carolina", abbr: "SC", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "South Dakota", abbr: "SD", tz: "America/Chicago", tzName: "Central Time" },
-    { name: "Tennessee", abbr: "TN", tz: "America/Chicago", tzName: "Central Time" },
-    { name: "Texas", abbr: "TX", tz: "America/Chicago", tzName: "Central Time" },
-    { name: "Utah", abbr: "UT", tz: "America/Denver", tzName: "Mountain Time" },
-    { name: "Vermont", abbr: "VT", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "Virginia", abbr: "VA", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "Washington", abbr: "WA", tz: "America/Los_Angeles", tzName: "Pacific Time" },
-    { name: "West Virginia", abbr: "WV", tz: "America/New_York", tzName: "Eastern Time" },
-    { name: "Wisconsin", abbr: "WI", tz: "America/Chicago", tzName: "Central Time" },
-    { name: "Wyoming", abbr: "WY", tz: "America/Denver", tzName: "Mountain Time" }
-];
-
 const stateTimeElements = [];
 
 function initTimeZonesTable() {
     const tbody = document.getElementById('timezone-tbody');
+
     usStates.forEach(state => {
         const tr = document.createElement('tr');
         tr.title = state.tzName;
@@ -481,7 +447,7 @@ captureBtn.addEventListener('click', async () => {
 });
 
 
-// --- 4. Calculator (UPDATED Tricky Split Div, History, Keyboard Fix) ---
+// --- 4. Calculator (Tricky Split Div, History, Keyboard Fix) ---
 const calcDisplay = document.getElementById('calc-display');
 const calcNumpad = document.getElementById('calc-numpad');
 const toggleNumpadBtn = document.getElementById('toggle-numpad-btn');
@@ -513,7 +479,7 @@ function clearCalc() {
     calcDisplay.value = "";
 }
 
-// THE NEW EVEN SPLIT LOGIC
+// EVEN SPLIT LOGIC
 function calculateSplit(expression) {
     const parts = expression.split(' Split ');
     if (parts.length !== 2) return "Error";
@@ -530,12 +496,10 @@ function calculateSplit(expression) {
         const Q = Math.floor(N / D);
         const R = N % D;
         
-        // If it divides perfectly
-        if (R === 0) {
-            return `${numToWord(D)} ${Q}s`;
-        }
+        // perfectly divided
+        if (R === 0) return `${numToWord(D)} ${Q}s`;
         
-        // Distribute remainder evenly
+        // distribute remainder
         const countBase = D - R;
         const countUpper = R;
         const valUpper = Q + 1;
@@ -622,10 +586,27 @@ document.addEventListener('keydown', (e) => {
 
 // --- 5. Quick Notes ---
 const noteArea = document.getElementById('note-area');
+const noteCounter = document.getElementById('note-counter');
 const savedNote = localStorage.getItem('quick_notes');
 
-if (savedNote) noteArea.value = savedNote;
+function updateCounters() {
+    const text = noteArea.value;
+    const charCount = text.length;
+    
+    // Split by spaces/newlines to get word count, ignore empty strings
+    const wordCount = text.trim() === "" ? 0 : text.trim().split(/\s+/).length;
+    
+    noteCounter.innerText = `Words: ${wordCount} | Characters: ${charCount} / 2000`;
+}
 
+// Load saved note and update the counter immediately
+if (savedNote) {
+    noteArea.value = savedNote;
+    updateCounters();
+}
+
+// Listen for typing to save and update counters
 noteArea.addEventListener('input', (e) => {
     localStorage.setItem('quick_notes', e.target.value);
+    updateCounters();
 });
