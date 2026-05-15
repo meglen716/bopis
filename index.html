@@ -77,6 +77,33 @@
                 <p id="alarm-countdown" style="display: none; font-size: 1.1rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;"></p>
                 <p id="alarm-status">No alarm set.</p>
             </div>
+
+            <!-- Embedded Admin Bulletin Board -->
+            <div id="announcement-board" class="announcement-board">
+            <!-- The Secret Trigger & Notification Toggle -->
+            <div class="board-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <div id="secret-trigger" class="board-header" style="cursor: pointer; margin-bottom: 0;">📢 LATEST ANNOUNCEMENT</div>
+                
+                <!-- NEW: Toggle Switch Container -->
+                <!-- <div class="notif-toggle-container" title="Enable Desktop Alerts">
+                    <span class="notif-label">Alerts</span>
+                    <label class="switch">
+                        <input type="checkbox" id="notif-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div> -->
+            </div>
+            <p id="announcement-text">No active announcements.</p>
+            
+            <!-- HIDDEN ADMIN CONTROLS -->
+            <div id="admin-panel" class="hidden-admin">
+                <textarea id="admin-input" placeholder="Type new broadcast..."></textarea>
+                <div class="admin-actions">
+                    <button id="admin-broadcast-btn" class="calc-btn">Broadcast</button>
+                    <button id="admin-clear-btn" class="calc-btn">Clear Board</button>
+                </div>
+            </div>
+        </div>
         </section>
 
         <!-- 2. U.S Time Zones -->
@@ -117,7 +144,7 @@
         <!-- 4. Calculator -->
         <section id="calculator" class="tab-panel">
             <h2>Calculator</h2>
-            <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem;">Type anywhere to calculate. Use Numpad, Enter, Backspace, and "S" for Tricky Div.</p>
+            <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem;">Type anywhere to calculate. Use Numpad, Enter, Backspace, and "S" for Split Division.</p>
             
             <div class="tool-content calc-layout">
                 <div class="calc-main">
@@ -156,14 +183,13 @@
                         <button id="clear-history-btn" class="text-btn">Clear</button>
                     </div>
                     <ul id="calc-history-list">
-                        <!-- History items appended here -->
+                        <!-- History displayed here -->
                     </ul>
                 </div>
             </div>
         </section>
 
         <!-- 5. Quick Notes -->
-<!-- Inside the notes section -->
         <section id="notes" class="tab-panel">
             <h2>Quick Notes</h2>
             <div class="tool-content">
@@ -184,8 +210,13 @@
     </div>
 
     <footer class="app-footer">
-        BOpis v2.0.0 | &copy; 2026 Meglen
+        BOpis v2.3.0 | &copy; 2026 Meglen
     </footer>
+
+    <!-- Firebase Libraries -->
+    <!-- Firebase Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script src="data.js"></script>
     <script src="script.js"></script>

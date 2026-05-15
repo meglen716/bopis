@@ -610,3 +610,72 @@ noteArea.addEventListener('input', (e) => {
     localStorage.setItem('quick_notes', e.target.value);
     updateCounters();
 });
+
+// ==========================================
+// 8. FIREBASE ANNOUNCEMENT BOARD
+// ==========================================
+const announcementText = document.getElementById('announcement-text');
+const secretTrigger = document.getElementById('secret-trigger');
+const adminPanel = document.getElementById('admin-panel');
+const adminInput = document.getElementById('admin-input');
+const adminBroadcastBtn = document.getElementById('admin-broadcast-btn');
+const adminClearBtn = document.getElementById('admin-clear-btn');
+
+// --- FIREBASE CONFIG (PASTE YOURS BELOW) ---
+const firebaseConfig = {
+    apiKey: "AIzaSyBcWb6Wy-W5DzjL7RVFFLLzOecHbawx1lg",
+    authDomain: "bopis-d5300.firebaseapp.com",
+    projectId: "bopis-d5300",
+    storageBucket: "bopis-d5300.firebasestorage.app",
+    messagingSenderId: "1045370937906",
+    appId: "1:1045370937906:web:26c28ab8587f9d20ed122b"
+};
+
+// Initialize Firebase
+if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // 1. Live Listener (Direct UI update)
+    db.ref('announcement/message').on('value', (snapshot) => {
+        const msg = snapshot.val();
+        if (announcementText) {
+            announcementText.innerText = msg ? msg : "No active announcements.";
+        }
+    });
+
+    // 2. Secret Admin Trigger (5-Tap)
+    let taps = 0;
+    let tapTimer;
+    if (secretTrigger) {
+        secretTrigger.addEventListener('click', () => {
+            taps++;
+            clearTimeout(tapTimer);
+            if (taps >= 5) {
+                if (adminPanel) adminPanel.classList.toggle('active');
+                taps = 0;
+            } else {
+                tapTimer = setTimeout(() => taps = 0, 1500);
+            }
+        });
+    }
+
+    // 3. Admin Actions
+    if (adminBroadcastBtn) {
+        adminBroadcastBtn.addEventListener('click', () => {
+            const val = adminInput.value.trim();
+            if (val) {
+                db.ref('announcement/message').set(val);
+                adminInput.value = '';
+                if (adminPanel) adminPanel.classList.remove('active');
+            }
+        });
+    }
+
+    if (adminClearBtn) {
+        adminClearBtn.addEventListener('click', () => {
+            db.ref('announcement/message').remove();
+            if (adminPanel) adminPanel.classList.remove('active');
+        });
+    }
+}
