@@ -1,4 +1,4 @@
-# BOpis Dashboard v2.0 
+# BOpis Dashboard 
 
 **BOpis** is a sleek, modular, and highly optimized productivity dashboard designed specifically for back-office operations. It combines essential time-management utilities with stealthy, specialized tools—including a secure, backend-driven audio tunnel—all packaged in a fast, vanilla JavaScript interface.
 
