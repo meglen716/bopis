@@ -64,6 +64,9 @@ input:checked + .slider:before { transform: translateX(20px); }
     .tabs.open { display: flex; }
     .tab-btn { border-bottom: none; border-left: 4px solid transparent; text-align: left; padding: 1rem 2rem; }
     .tab-btn.active { border-bottom: none; border-left: 4px solid var(--primary-color); }
+    #popout-notes-btn { 
+        display: none !important; 
+    }
 }
 
 /* Panels */
@@ -306,4 +309,117 @@ input:checked + .slider:before {
 .admin-actions button {
     flex: 1;
     font-size: 0.85rem;
+}
+
+/* =========================================
+   Floating Quick Notes
+========================================= */
+.tab-panel.floating-mode {
+    position: fixed;
+    top: 80px;
+    right: 30px;
+    width: 350px;
+    height: 450px;
+    z-index: 9999;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    border: 1px solid var(--border-color);
+    display: flex !important; /* Overrides standard tab hiding */
+    flex-direction: column;
+    padding: 0; 
+    resize: both; /* Lets you drag the corner to resize */
+    overflow: hidden;
+    background-color: var(--surface-color);
+    border-radius: 8px;
+}
+.tab-panel.floating-mode #notes-standard-header,
+.tab-panel.floating-mode #notes-desc {
+    display: none; /* Hide normal text when floating */
+}
+.tab-panel.floating-mode .tool-content {
+    padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.tab-panel.floating-mode #note-area {
+    flex: 1;
+    height: auto;
+    resize: none; /* Disables textarea resize, relies on panel resize */
+}
+
+/* The Grab Handle */
+.drag-handle {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    cursor: grab;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+/* =========================================
+   Email-Style Admin Formatting Toolbar
+========================================= */
+.editor-container {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+    background-color: var(--bg-color);
+}
+.format-toolbar {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.4rem 0.5rem;
+    background-color: var(--tab-hover); /* Gives it that classic gray email header look */
+    border-bottom: 1px solid var(--border-color);
+}
+.format-btn {
+    background: transparent;
+    color: var(--text-color);
+    border: none;
+    border-radius: 4px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: 0.2s;
+    font-weight: bold;
+}
+.format-btn:hover {
+    background-color: var(--border-color);
+}
+
+/* Update the textarea so it flows seamlessly from the toolbar */
+#admin-input {
+    width: 100%;
+    height: 80px;
+    padding: 0.75rem;
+    background-color: transparent;
+    color: var(--text-color);
+    border: none; /* We removed the box border since the container handles it now */
+    resize: vertical;
+    outline: none;
+    display: block;
+    margin-bottom: 0;
+}
+#admin-input:focus {
+    box-shadow: inset 0 0 0 2px var(--primary-color); /* Nice blue glow inside when typing */
+}
+
+/* Styling for the broadcasted rich text */
+#announcement-text a {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+#announcement-text mark {
+    background-color: rgba(255, 215, 0, 0.4);
+    color: inherit;
+    padding: 0 0.2rem;
+    border-radius: 3px;
 }

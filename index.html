@@ -80,30 +80,43 @@
 
             <!-- Embedded Admin Bulletin Board -->
             <div id="announcement-board" class="announcement-board">
-            <!-- The Secret Trigger & Notification Toggle -->
-            <div class="board-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <div id="secret-trigger" class="board-header" style="cursor: pointer; margin-bottom: 0;">📢 LATEST ANNOUNCEMENT</div>
+                <!-- The Secret Trigger & Notification Toggle -->
+                <div class="board-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <div id="secret-trigger" class="board-header" style="cursor: pointer; margin-bottom: 0;">📢 LATEST ANNOUNCEMENT</div>
+                    
+                    <!-- NEW: Toggle Switch Container (Uncommented and Active) -->
+                    <div class="notif-toggle-container" title="Enable Desktop Alerts">
+                        <span class="notif-label">Alerts</span>
+                        <label class="switch">
+                            <input type="checkbox" id="notif-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                <p id="announcement-text">No active announcements.</p>
                 
-                <!-- NEW: Toggle Switch Container -->
-                <!-- <div class="notif-toggle-container" title="Enable Desktop Alerts">
-                    <span class="notif-label">Alerts</span>
-                    <label class="switch">
-                        <input type="checkbox" id="notif-toggle">
-                        <span class="slider round"></span>
-                    </label>
-                </div> -->
-            </div>
-            <p id="announcement-text">No active announcements.</p>
-            
-            <!-- HIDDEN ADMIN CONTROLS -->
-            <div id="admin-panel" class="hidden-admin">
-                <textarea id="admin-input" placeholder="Type new broadcast..."></textarea>
-                <div class="admin-actions">
-                    <button id="admin-broadcast-btn" class="calc-btn">Broadcast</button>
-                    <button id="admin-clear-btn" class="calc-btn">Clear Board</button>
+                <!-- HIDDEN ADMIN CONTROLS -->
+                <!-- HIDDEN ADMIN CONTROLS -->
+                <div id="admin-panel" class="hidden-admin">
+                    
+                    <!-- NEW: Unified Email-Style Editor -->
+                    <div class="editor-container">
+                        <div class="format-toolbar">
+                            <button type="button" class="format-btn" data-tag="b" title="Bold">B</button>
+                            <button type="button" class="format-btn" data-tag="i" title="Italic">I</button>
+                            <button type="button" class="format-btn" data-tag="u" title="Underline">U</button>
+                            <button type="button" class="format-btn" data-tag="mark" title="Highlight">⚠️</button>
+                            <button type="button" class="format-btn" data-tag="a" title="Add Link">🔗</button>
+                        </div>
+                        <textarea id="admin-input" placeholder="Type your broadcast here..."></textarea>
+                    </div>
+
+                    <div class="admin-actions">
+                        <button id="admin-broadcast-btn" class="calc-btn">Broadcast</button>
+                        <button id="admin-clear-btn" class="calc-btn outline-btn" style="margin-bottom: 0;">Clear Board</button>
+                    </div>
                 </div>
             </div>
-        </div>
         </section>
 
         <!-- 2. U.S Time Zones -->
@@ -191,9 +204,18 @@
 
         <!-- 5. Quick Notes -->
         <section id="notes" class="tab-panel">
-            <h2>Quick Notes</h2>
+            <!-- NEW: Hidden Drag Handle for Floating Mode -->
+            <div id="notes-drag-handle" class="drag-handle" style="display: none;">
+                <span>Quick Notes (Floating)</span>
+                <button id="dock-notes-btn" class="text-btn" style="color: white;">Dock</button>
+            </div>
+
+            <h2 id="notes-standard-header">Quick Notes 
+                <button id="popout-notes-btn" class="outline-btn" style="width: auto; padding: 0.2rem 0.8rem; font-size: 0.8rem; float: right; margin: 0;">Pop Out</button>
+            </h2>
+            
             <div class="tool-content">
-                <p>Notes auto-save as you type.</p>
+                <p id="notes-desc">Notes auto-save as you type.</p>
                 <textarea id="note-area" placeholder="Type your notes here..." maxlength="2000"></textarea>
                 <div id="note-counter" class="note-counter">Words: 0 | Characters: 0 / 2000</div>
             </div>
@@ -213,7 +235,6 @@
         BOpis v2.3.0 | &copy; 2026 Meglen
     </footer>
 
-    <!-- Firebase Libraries -->
     <!-- Firebase Libraries -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>

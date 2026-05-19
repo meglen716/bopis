@@ -30,17 +30,23 @@ hamburgerBtn.addEventListener('click', () => {
 tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         tabBtns.forEach(b => b.classList.remove('active'));
-        tabPanels.forEach(p => p.classList.remove('active'));
+        
+        // Hide panels ONLY if they are not in floating mode
+        tabPanels.forEach(p => {
+            if (!p.classList.contains('floating-mode')) {
+                p.classList.remove('active');
+            }
+        });
         
         btn.classList.add('active');
-        document.getElementById(btn.dataset.target).classList.add('active');
+        const target = document.getElementById(btn.dataset.target);
+        if (target) target.classList.add('active');
 
         if (window.innerWidth <= 768) {
             navTabs.classList.remove('open');
         }
     });
 });
-
 // --- Stay Awake Toggle (Wake Lock API & Persistence) ---
 let wakeLock = null;
 const wakeToggle = document.getElementById('wake-toggle');
@@ -85,7 +91,6 @@ wakeToggle.addEventListener('change', (e) => {
 
 // 4. The Visibility Watcher (Restores lock after switching tabs)
 document.addEventListener('visibilitychange', () => {
-
     if (document.visibilityState === 'visible' && localStorage.getItem('stay_awake') === 'on') {
         requestWakeLock(); // Instantly turn the lock back on!
     }
@@ -437,7 +442,7 @@ captureBtn.addEventListener('click', async () => {
             await navigator.clipboard.write([item]);
             
             const originalText = captureBtn.innerText;
-            captureBtn.innerText = "✅ Copied!";
+            captureBtn.innerText = "Copied!";
             setTimeout(() => { captureBtn.innerText = originalText; }, 2000);
         } catch (err) {
             alert("Failed to copy image. Your browser might block clipboard access without secure HTTPS.");
@@ -611,20 +616,139 @@ noteArea.addEventListener('input', (e) => {
     updateCounters();
 });
 
+// --- Floating Notes Logic ---
+const notesPanel = document.getElementById('notes');
+const popoutNotesBtn = document.getElementById('popout-notes-btn');
+const dockNotesBtn = document.getElementById('dock-notes-btn');
+const dragHandle = document.getElementById('notes-drag-handle');
+
+function popOutNotes() {
+    if (window.innerWidth <= 768) return; // Failsafe for mobile
+    notesPanel.classList.add('floating-mode');
+    dragHandle.style.display = 'flex';
+    localStorage.setItem('notes_floating', 'true');
+}
+
+function dockNotes() {
+    notesPanel.classList.remove('floating-mode');
+    dragHandle.style.display = 'none';
+    
+    // 1. Clear ALL dragged position and size data
+    notesPanel.style.top = ''; 
+    notesPanel.style.left = '';
+    notesPanel.style.right = '';
+    notesPanel.style.bottom = '';
+    notesPanel.style.width = '';
+    notesPanel.style.height = '';
+    
+    // 2. Fix the "Ghost Tab" bug: Only stay visible if the Notes tab is actually selected
+    const activeTabBtn = document.querySelector('.tab-btn.active');
+    if (activeTabBtn && activeTabBtn.dataset.target !== 'notes') {
+        notesPanel.classList.remove('active');
+    } else {
+        notesPanel.classList.add('active');
+    }
+
+    localStorage.setItem('notes_floating', 'false');
+}
+
+popoutNotesBtn.addEventListener('click', popOutNotes);
+dockNotesBtn.addEventListener('click', dockNotes);
+
+// Drag and Drop Physics
+let isDraggingNotes = false;
+let dragOffsetX, dragOffsetY;
+
+dragHandle.addEventListener('mousedown', (e) => {
+    isDraggingNotes = true;
+    const rect = notesPanel.getBoundingClientRect();
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (!isDraggingNotes) return;
+    e.preventDefault(); 
+    
+    notesPanel.style.right = 'auto';
+    notesPanel.style.bottom = 'auto';
+    notesPanel.style.left = `${e.clientX - dragOffsetX}px`;
+    notesPanel.style.top = `${e.clientY - dragOffsetY}px`;
+});
+
+// Save position AND size when you let go of the mouse
+document.addEventListener('mouseup', () => {
+    if (isDraggingNotes) {
+        isDraggingNotes = false;
+        localStorage.setItem('notes_left', notesPanel.style.left);
+        localStorage.setItem('notes_top', notesPanel.style.top);
+    }
+    // Also save the width/height in case the user resized the window
+    if (notesPanel.classList.contains('floating-mode')) {
+        localStorage.setItem('notes_width', notesPanel.style.width);
+        localStorage.setItem('notes_height', notesPanel.style.height);
+    }
+});
+
+// Auto-Dock if the user resizes their browser window to a mobile size
+window.addEventListener('resize', () => {
+    if (window.innerWidth <= 768 && notesPanel.classList.contains('floating-mode')) {
+        dockNotes();
+    }
+});
+
+// Restore Floating State on Page Load (The "Amnesia" Fix)
+if (localStorage.getItem('notes_floating') === 'true' && window.innerWidth > 768) {
+    notesPanel.style.left = localStorage.getItem('notes_left') || '';
+    notesPanel.style.top = localStorage.getItem('notes_top') || '';
+    notesPanel.style.width = localStorage.getItem('notes_width') || '';
+    notesPanel.style.height = localStorage.getItem('notes_height') || '';
+    popOutNotes();
+}
+
 // ==========================================
-// 8. FIREBASE ANNOUNCEMENT BOARD
+// 8. FIREBASE ANNOUNCEMENT BOARD & NOTIFICATIONS
 // ==========================================
+const announcementBoard = document.getElementById('announcement-board');
 const announcementText = document.getElementById('announcement-text');
 const secretTrigger = document.getElementById('secret-trigger');
 const adminPanel = document.getElementById('admin-panel');
 const adminInput = document.getElementById('admin-input');
 const adminBroadcastBtn = document.getElementById('admin-broadcast-btn');
 const adminClearBtn = document.getElementById('admin-clear-btn');
+const notifToggle = document.getElementById('notif-toggle');
 
-// --- FIREBASE CONFIG (PASTE YOURS BELOW) ---
+// --- Notification Setup ---
+if (notifToggle) {
+    // Set initial state based on current permissions
+    notifToggle.checked = (Notification.permission === 'granted');
+    
+    notifToggle.addEventListener('change', (e) => {
+        if (e.target.checked && Notification.permission !== 'granted') {
+            Notification.requestPermission().then(permission => {
+                if (permission !== 'granted') {
+                    notifToggle.checked = false; // Revert if they click Deny
+                }
+            });
+        }
+    });
+}
+
+function pushDesktopNotification(text) {
+    if (notifToggle && notifToggle.checked && Notification.permission === 'granted') {
+        const notif = new Notification('BOpis Command Center', {
+            body: text,
+            icon: 'https://cdn-icons-png.flaticon.com/512/1827/1827370.png'
+        });
+        notif.onclick = () => window.focus(); // Bring tab to front on click
+    }
+}
+
+// --- FIREBASE CONFIG ---
 const firebaseConfig = {
     apiKey: "AIzaSyBcWb6Wy-W5DzjL7RVFFLLzOecHbawx1lg",
     authDomain: "bopis-d5300.firebaseapp.com",
+    databaseURL: "https://bopis-d5300-default-rtdb.firebaseio.com", // FIXED: Added missing database URL
     projectId: "bopis-d5300",
     storageBucket: "bopis-d5300.firebasestorage.app",
     messagingSenderId: "1045370937906",
@@ -636,12 +760,34 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. Live Listener (Direct UI update)
+    // 1. Live Listener (Direct UI update & Notifications)
+    let isInitialLoad = true;
+    let currentMessage = "";
+
     db.ref('announcement/message').on('value', (snapshot) => {
         const msg = snapshot.val();
-        if (announcementText) {
-            announcementText.innerText = msg ? msg : "No active announcements.";
+        
+        if (msg) {
+            // CHANGED from innerText to innerHTML
+            if (announcementText) announcementText.innerHTML = msg; 
+            
+            if (!isInitialLoad && msg !== currentMessage) {
+                // To prevent raw HTML tags from showing in the desktop notification popup:
+                const plainText = announcementText.innerText; 
+                pushDesktopNotification(plainText);
+                
+                if (announcementBoard) {
+                    announcementBoard.classList.add('highlight-pulse');
+                    setTimeout(() => announcementBoard.classList.remove('highlight-pulse'), 5000);
+                }
+            }
+            currentMessage = msg;
+        } else {
+            if (announcementText) announcementText.innerHTML = "No active announcements.";
+            currentMessage = "";
         }
+        
+        isInitialLoad = false;
     });
 
     // 2. Secret Admin Trigger (5-Tap)
@@ -679,3 +825,35 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
         });
     }
 }
+
+// 4. Formatting Toolbar Logic
+    const formatBtns = document.querySelectorAll('.format-btn');
+    
+    if (formatBtns) {
+        formatBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault(); // Stop page from refreshing
+                
+                const tag = btn.dataset.tag;
+                const start = adminInput.selectionStart;
+                const end = adminInput.selectionEnd;
+                const selectedText = adminInput.value.substring(start, end);
+                let formattedText = "";
+
+                // If it's a link, ask the user for the URL
+                if (tag === 'a') {
+                    const url = prompt("Enter the web link (URL):", "https://");
+                    if (!url) return; // If they click cancel, do nothing
+                    // Target="_blank" makes it open in a new tab!
+                    formattedText = `<a href="${url}" target="_blank">${selectedText || 'Click Here'}</a>`;
+                } else {
+                    // Standard tags (b, i, u, mark)
+                    formattedText = `<${tag}>${selectedText}</${tag}>`;
+                }
+
+                // Inject the formatted text back into the text box
+                adminInput.setRangeText(formattedText, start, end, 'select');
+                adminInput.focus(); // Put the cursor back in the box
+            });
+        });
+    }
