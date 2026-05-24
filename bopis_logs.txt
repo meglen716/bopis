@@ -73,6 +73,27 @@ Objective: Bypass network restrictions and optimize code architecture.
 - Application Rebranding: Officially rebranded the project from a generic dashboard to "BOpis" (a play on Back Office / local delicacy) across all headers, titles, and documentation.
 - Footer Redesign: Shifted footer alignment to the bottom-left, reduced font size to 0.65rem, and updated the copyright signature to Meglen.
 
+---------------------------------------------------------
+
+Changelog: May 24, 2026
+
+[Security & Admin Upgrades]
+
+* **Secure Vault Access:** Upgraded the hidden admin panel with a Firebase-validated PIN login system, including a red "shake" error animation for unauthorized access attempts.
+* **WYSIWYG Editor:** Transformed the raw HTML announcement input into a real-time visual rich-text editor (`contenteditable`). Formatting (Bold, Italic, Link, etc.) now renders instantly as you type.
+* **Sleek Toolbar UI:** Redesigned the formatting buttons into minimalist, flat tabs that sit seamlessly above the text area, mimicking a modern email compose window.
+* **Safe Exits:** Replaced the "Clear Board" button with a "Cancel Edit" button to prevent accidental broadcast deletions.
+
+[Features & Functionality]
+
+* **Draggable Quick Notes:** Added a "Pop Out" mode, turning the Quick Notes tab into a free-floating, draggable, and resizable window that stays pinned over other tools. It remembers its exact position upon refresh and auto-docks on mobile screens.
+* **Live Timestamps:** The announcement board now automatically generates and displays a permanent 12-hour (AM/PM) timestamp in the bottom right corner whenever a new broadcast is pushed.
+* **Typewriter Header:** Redesigned the main "Back Opis" header into an `<h3>` Consolas font with a looping, letter-by-letter typing animation and a blinking terminal cursor.
+
+[Bug Fixes & Stability]
+
+* **Mobile Web Crash Fixed:** Safely stripped out the experimental Desktop Push Notification API, which was causing fatal JavaScript errors and preventing the board from loading on mobile browsers (specifically iOS Safari) via GitHub Pages.
+
 =========================================================
 END OF LOG
 =========================================================
