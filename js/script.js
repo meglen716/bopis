@@ -1,7 +1,3 @@
-// ==========================================
-// BOPIS COMMAND CENTER - MAIN LOGIC
-// ==========================================
-
 // --- Typewriter Header Animation ---
 const typewriterElement = document.getElementById('typewriter-header');
 if (typewriterElement) {
