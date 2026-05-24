@@ -1,0 +1,78 @@
+=========================================================
+BOPIS COMMAND CENTER - MASTER DEVELOPMENT LOG
+Current Build: Version 2.0.0
+Date: May 2026
+Lead Developer: Meglen
+=========================================================
+
+---------------------------------------------------------
+PHASE 1: THE FOUNDATION (v1.0.0)
+Objective: Establish the core UI shell and essential time-management tools.
+---------------------------------------------------------
+
+[UI / CORE ARCHITECTURE]
+- Workspace Shell: Built a responsive, mobile-friendly HTML/CSS layout utilizing CSS variables for easy theming.
+- Navigation: Implemented a sliding hamburger menu for smaller screens and a tab-based navigation system to switch between tools without reloading the page.
+- Theme Engine: Engineered a Dark/Light mode toggle that saves user preferences to browser localStorage.
+
+[TOOL: ALARM CLOCK]
+- Background Processing: Integrated a Web Worker to manage the timer logic, ensuring the countdown does not get throttled or delayed when the browser tab is inactive.
+- Audio Engine: Built support for standard generated tones (beep, chime, siren) alongside a "Direct URL" custom input, allowing playback of raw audio files hosted on Dropbox or Discord.
+- User Interface: Added a live countdown string (Hours/Minutes/Seconds) and a looping toggle switch.
+
+[TOOL: U.S. TIME ZONES]
+- Tracking Table: Designed an Excel-style tracking grid to monitor U.S. states.
+- Real-Time Synchronization: Leveraged the Intl.DateTimeFormat API to keep all time zones perfectly synced with the user's local system clock.
+
+---------------------------------------------------------
+PHASE 2: UTILITY & SECURITY (v1.2.0 - v1.5.0)
+Objective: Integrate hardware inputs and specialized computational logic.
+---------------------------------------------------------
+
+[TOOL: FLOATING WEBCAM]
+- Hardware Access: Utilized the MediaDevices API to securely stream local webcam feeds.
+- Spy-Cam Mode: Integrated the Picture-in-Picture (PiP) API, allowing the camera feed to pop out and float over other desktop applications.
+- Background Fix: Applied specific CSS overrides so the camera feed remains active even when the user switches to a different tool tab.
+- Capture-to-Paste: Engineered a canvas-based screenshot tool that captures the current video frame and writes it directly to the system clipboard for instant pasting. Removed emoji icon for a cleaner, professional look.
+
+[TOOL: CALCULATOR]
+- Grid Layout: Built a standard calculator interface with an optional, toggleable on-screen numpad.
+- Keyboard Integration: Added comprehensive event listeners allowing users to calculate using their physical Numpad, Enter, Backspace, and Escape keys.
+- "Split" Logic: Programmed a custom mathematical function to calculate fair-share division. The engine translates numerical remainders into readable English strings (e.g., distributing 17 into 3 groups outputs "two 6s and one 5").
+- Audit Trail: Added a real-time history pane that logs all completed equations during the session.
+
+---------------------------------------------------------
+PHASE 3: PRODUCTIVITY & PERSISTENCE (v1.8.0)
+Objective: Ensure data retention and workflow continuity.
+---------------------------------------------------------
+
+[TOOL: QUICK NOTES]
+- Auto-Save Engine: Wired the textarea to localStorage, saving keystrokes in real-time to prevent data loss upon accidental refresh.
+- Workplace Optimization: Enforced a strict 2000-character limit to encourage concise notes.
+- Live Metrics: Engineered a dynamic counter tracking both Word Count and Character Count.
+- UI Adjustment: Locked in a minimum height of 200px for better workspace visualization.
+
+[TOOL: STAY AWAKE]
+- Screen Wake Lock: Implemented the Screen Wake Lock API to prevent the operating system from dimming or locking the screen during long shifts.
+- Persistence Engine: Programmed the toggle to remember its state via localStorage.
+- Visibility Watcher: Added a 'visibilitychange' event listener that detects when the user returns to the BOpis tab, instantly re-engaging the screen lock to outsmart aggressive browser battery-saving measures.
+
+---------------------------------------------------------
+PHASE 4: STEALTH OPERATIONS & MODULARIZATION (v2.0.0)
+Objective: Bypass network restrictions and optimize code architecture.
+---------------------------------------------------------
+
+[TOOL: STEALTH MUSIC PLAYER]
+- Local Backend (Node.js): Built a private Express server to run on the home PC, keeping heavy processing off the office network.
+- Secure Tunneling: Integrated Ngrok to bore a secure, encrypted tunnel from the home server directly to the BOpis dashboard.
+- Bulletproof Extraction: Replaced standard YouTube iframes (which are heavily blocked) with a custom extractor. Integrated 'yt-search' and 'axios' to route requests through the Piped API network, successfully bypassing YouTube's cipher and ad-block security measures.
+- Hacker Terminal: Created a hidden command-line interface in the dashboard UI, triggered by the Tilde (~) key, allowing the user to search, play, pause, and adjust volume via text commands.
+
+[ARCHITECTURE & REFACTORING]
+- Code Modularity: Executed a massive code cleanup. Separated the 50-state tracking array into a dedicated 'data.js' file, and isolated all highly classified Node.js/Ngrok music streaming logic into a dedicated 'stealth.js' module.
+- Application Rebranding: Officially rebranded the project from a generic dashboard to "BOpis" (a play on Back Office / local delicacy) across all headers, titles, and documentation.
+- Footer Redesign: Shifted footer alignment to the bottom-left, reduced font size to 0.65rem, and updated the copyright signature to Meglen.
+
+=========================================================
+END OF LOG
+=========================================================

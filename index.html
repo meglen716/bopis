@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOpis</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h3 id="typewriter-header"></h3></h3>
+        <div class="header-controls">
+            <div class="toggle-group">
+                <span>Stay Awake</span>
+                <label class="switch">
+                    <input type="checkbox" id="wake-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="toggle-group">
+                <span>Dark Mode</span>
+                <label class="switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <div class="nav-container">
+        <button class="hamburger" id="hamburger-btn">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="tabs" id="nav-tabs">
+            <button class="tab-btn active" data-target="alarm">Alarm Clock</button>
+            <button class="tab-btn" data-target="timezones">U.S Time Zones</button>
+            <button class="tab-btn" data-target="webcam">Floating Webcam</button>
+            <button class="tab-btn" data-target="calculator">Calculator</button>
+            <button class="tab-btn" data-target="notes">Quick Notes</button>
+        </nav>
+    </div>
+
+    <main class="panel-container">
+        <!-- 1. Alarm Clock -->
+        <section id="alarm" class="tab-panel active">
+            <h2>Alarm Clock</h2>
+            <div class="tool-content">
+                
+                <div class="digital-clock-container">
+                    <div id="digital-time">--:--:--</div>
+                    <div id="digital-date">---</div>
+                </div>
+
+                <div class="alarm-controls">
+                    <input type="time" id="alarm-time">
+                    
+                    <select id="alarm-ringtone" class="minimal-select">
+                        <option value="beep">Classic Beep</option>
+                        <option value="chime">Gentle Chime</option>
+                        <option value="siren">Emergency Siren</option>
+                        <option value="direct-url">Direct Web Link (Dropbox/Discord)</option>
+                    </select>
+
+                    <label class="checkbox-label" id="loop-container">
+                        <input type="checkbox" id="alarm-loop" checked> Loop Ringing
+                    </label>
+
+                    <button id="set-alarm-btn">Set Alarm</button>
+                    <button id="cancel-alarm-btn" class="outline-btn" style="display: none; margin-bottom: 0; width: auto;">Cancel Alarm</button>
+                    <button id="stop-alarm-btn" class="danger-btn" style="display: none;">Stop Ringing</button>
+                </div>
+
+                <input type="url" id="custom-url-input" placeholder="Paste Dropbox (?raw=1) or Discord link here" class="hidden-input">
+                
+                <p id="alarm-countdown" style="display: none; font-size: 1.1rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;"></p>
+                <p id="alarm-status">No alarm set.</p>
+            </div>
+
+            <!-- Embedded Admin Bulletin Board -->
+            <div id="announcement-board" class="announcement-board">
+                <!-- The Secret Trigger & Notification Toggle -->
+                <div class="board-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <div id="secret-trigger" class="board-header" style="cursor: pointer; margin-bottom: 0;">📢 LATEST ANNOUNCEMENT</div>
+                    
+                    <!-- NEW: Toggle Switch Container (Uncommented and Active) -->
+                    <div class="notif-toggle-container" title="Enable Desktop Alerts">
+                        <span class="notif-label">Alerts</span>
+                        <label class="switch">
+                            <input type="checkbox" id="notif-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                <p id="announcement-text">No active announcements.</p>
+
+                <div id="announcement-timestamp" class="announcement-timestamp"></div>
+                
+                <!-- HIDDEN ADMIN CONTROLS -->
+                <div id="admin-panel" class="hidden-admin">
+                    
+                    <!-- NEW: Unified Email-Style Editor -->
+                    <div class="editor-container">
+                        <div class="format-toolbar">
+                            <button type="button" class="format-btn" data-tag="b">Bold</button>
+                            <button type="button" class="format-btn" data-tag="i">Italic</button>
+                            <button type="button" class="format-btn" data-tag="u">Underline</button>
+                            <button type="button" class="format-btn" data-tag="mark">Highlight</button>
+                            <button type="button" class="format-btn" data-tag="a">Link</button>
+                        </div>
+                        <textarea id="admin-input" placeholder="Type your broadcast here..."></textarea>
+                    </div>
+
+                    <div class="admin-actions">
+                        <button id="admin-broadcast-btn" class="calc-btn">Broadcast</button>
+                        <button id="admin-cancel-btn" class="calc-btn outline-btn" style="margin-bottom: 0;">Cancel Edit</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. U.S Time Zones -->
+        <section id="timezones" class="tab-panel">
+            <h2>U.S Time Zones</h2>
+            <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem;">Hover over a state to see its time zone.</p>
+            <div class="tool-content table-container">
+                <table class="excel-table">
+                    <thead>
+                        <tr>
+                            <th>State</th>
+                            <th>Abbr</th>
+                            <th>Current Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timezone-tbody">
+                        <!-- Populated dynamically by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 3. Floating Webcam -->
+        <section id="webcam" class="tab-panel">
+            <h2>Floating Webcam</h2>
+            <div class="tool-content">
+                <p>Start the webcam, then click "Pop Out" to make it float anywhere on your screen.</p>
+                <video id="webcam-video" autoplay playsinline muted></video>
+                <div class="btn-group">
+                    <button id="start-webcam-btn">Start Webcam</button>
+                    <button id="stop-webcam-btn" class="danger-btn" disabled>Turn Off Camera</button>
+                    <button id="pip-btn" disabled>Pop Out (Picture-in-Picture)</button>
+                    <button id="capture-btn" disabled>Capture-to-Paste</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Calculator -->
+        <section id="calculator" class="tab-panel">
+            <h2>Calculator</h2>
+            <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem;">Type anywhere to calculate. Use Numpad, Enter, Backspace, and "S" for Split Division.</p>
+            
+            <div class="tool-content calc-layout">
+                <div class="calc-main">
+                    <input type="text" id="calc-display" disabled placeholder="0">
+                    
+                    <div class="calc-operators">
+                        <button class="calc-btn danger-btn" onclick="clearCalc()">C</button>
+                        <button class="calc-btn" onclick="appendCalc('/')">/</button>
+                        <button class="calc-btn" onclick="appendCalc('*')">*</button>
+                        <button class="calc-btn" onclick="appendCalc('-')">-</button>
+                        <button class="calc-btn" onclick="appendCalc('+')">+</button>
+                        <button class="calc-btn calc-split" onclick="appendCalc(' Split ')">Split</button>
+                        <button class="calc-btn calc-primary" onclick="calculateResult()">=</button>
+                    </div>
+
+                    <button id="toggle-numpad-btn" class="outline-btn">Show On-Screen Numpad</button>
+                    
+                    <div id="calc-numpad" class="calc-numpad hidden">
+                        <button class="calc-btn" onclick="appendCalc('7')">7</button>
+                        <button class="calc-btn" onclick="appendCalc('8')">8</button>
+                        <button class="calc-btn" onclick="appendCalc('9')">9</button>
+                        <button class="calc-btn" onclick="appendCalc('4')">4</button>
+                        <button class="calc-btn" onclick="appendCalc('5')">5</button>
+                        <button class="calc-btn" onclick="appendCalc('6')">6</button>
+                        <button class="calc-btn" onclick="appendCalc('1')">1</button>
+                        <button class="calc-btn" onclick="appendCalc('2')">2</button>
+                        <button class="calc-btn" onclick="appendCalc('3')">3</button>
+                        <button class="calc-btn numpad-zero" onclick="appendCalc('0')">0</button>
+                        <button class="calc-btn" onclick="appendCalc('.')">.</button>
+                    </div>
+                </div>
+
+                <div class="calc-history-pane">
+                    <div class="history-header">
+                        <h3>History</h3>
+                        <button id="clear-history-btn" class="text-btn">Clear</button>
+                    </div>
+                    <ul id="calc-history-list">
+                        <!-- History displayed here -->
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Quick Notes -->
+        <section id="notes" class="tab-panel">
+            <!-- NEW: Hidden Drag Handle for Floating Mode -->
+            <div id="notes-drag-handle" class="drag-handle" style="display: none;">
+                <span>Quick Notes (Floating)</span>
+                <button id="dock-notes-btn" class="text-btn" style="color: white;">Dock</button>
+            </div>
+
+            <h2 id="notes-standard-header">Quick Notes 
+                <button id="popout-notes-btn" class="outline-btn" style="width: auto; padding: 0.2rem 0.8rem; font-size: 0.8rem; float: right; margin: 0;">Pop Out</button>
+            </h2>
+            
+            <div class="tool-content">
+                <p id="notes-desc">Notes auto-save as you type.</p>
+                <textarea id="note-area" placeholder="Type your notes here..." maxlength="2000"></textarea>
+                <div id="note-counter" class="note-counter">Words: 0 | Characters: 0 / 2000</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Stealth Audio Engine -->
+    <audio id="stealth-audio" autoplay></audio>
+    
+    <!-- Hidden Hacker Terminal -->
+    <div id="command-terminal" class="hidden-terminal">
+        <span class="prompt-arrow">></span>
+        <input type="text" id="command-input" placeholder="Enter server command" autocomplete="off">
+    </div>
+
+    <footer class="app-footer">
+        BOpis v2.3.0 | &copy; 2026 Meglen
+    </footer>
+
+    <!-- Firebase Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script src="js/data.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/stealth.js"></script>
+</body>
+</html>

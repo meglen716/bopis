@@ -1,0 +1,410 @@
+:root {
+    --bg-color: #f4f5f7;
+    --surface-color: #ffffff;
+    --text-color: #333333;
+    --text-muted: #666666;
+    --primary-color: #007bff;
+    --danger-color: #ff4757;
+    --border-color: #dddddd;
+    --tab-hover: #e9ecef;
+    --switch-bg: #cccccc;
+    --select-arrow: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>');
+}
+
+[data-theme="dark"] {
+    --bg-color: #121212;
+    --surface-color: #1e1e1e;
+    --text-color: #e0e0e0;
+    --text-muted: #aaaaaa;
+    --primary-color: #bb86fc;
+    --danger-color: #ff6b81;
+    --border-color: #333333;
+    --tab-hover: #2c2c2c;
+    --switch-bg: #555555;
+    --select-arrow: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23e0e0e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>');
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Header & Toggles */
+header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; background-color: var(--surface-color); border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 1rem; }
+.header-controls { display: flex; gap: 1.5rem; align-items: center; }
+.toggle-group { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; font-weight: bold; }
+
+/* Minimalist Switch */
+.switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--switch-bg); transition: .3s; border-radius: 24px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--primary-color); }
+input:checked + .slider:before { transform: translateX(20px); }
+
+/* Navigation & Hamburger */
+.nav-container { background-color: var(--surface-color); border-bottom: 2px solid var(--border-color); position: relative; }
+.hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 1rem 2rem; cursor: pointer; }
+.hamburger span { width: 25px; height: 3px; background-color: var(--text-color); border-radius: 2px; transition: 0.3s; }
+.tabs { display: flex; flex-wrap: wrap; padding: 0 1rem; }
+.tab-btn { flex: 1; min-width: 120px; padding: 1rem; background: none; border: none; border-bottom: 3px solid transparent; color: var(--text-color); font-weight: bold; cursor: pointer; transition: all 0.2s; }
+.tab-btn:hover { background-color: var(--tab-hover); }
+.tab-btn.active { border-bottom: 3px solid var(--primary-color); color: var(--primary-color); }
+
+@media (max-width: 768px) {
+    .hamburger { display: flex; }
+    .tabs { display: none; flex-direction: column; width: 100%; padding: 0; position: absolute; top: 100%; left: 0; background-color: var(--surface-color); box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 100; }
+    .tabs.open { display: flex; }
+    .tab-btn { border-bottom: none; border-left: 4px solid transparent; text-align: left; padding: 1rem 2rem; }
+    .tab-btn.active { border-bottom: none; border-left: 4px solid var(--primary-color); }
+    #popout-notes-btn { display: none !important; } /* Hide popout on mobile */
+}
+
+/* Panels */
+.panel-container { flex: 1; padding: 2rem; max-width: 1000px; margin: 0 auto; width: 100%; }
+.tab-panel { display: none; background-color: var(--surface-color); padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.tab-panel.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+
+/* FIX FOR WEBCAM PiP FREEZING */
+#webcam:not(.active) {
+    display: block !important;
+    position: absolute !important;
+    left: -9999px !important;
+    visibility: hidden !important;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+.tool-content { margin-top: 1rem; }
+
+/* Global Inputs & Buttons (Modified to exclude .format-btn) */
+input:not([type="checkbox"]), textarea, button:not(.tab-btn):not(.hamburger):not(.text-btn):not(.format-btn), .minimal-select {
+    font-family: inherit; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background-color: var(--bg-color); color: var(--text-color); font-size: 1rem;
+}
+.minimal-select { appearance: none; -webkit-appearance: none; padding-right: 2.5rem; cursor: pointer; background-image: var(--select-arrow); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 16px; outline: none; }
+.minimal-select:focus { border-color: var(--primary-color); }
+
+/* Global Buttons (Modified to exclude .format-btn) */
+button:not(.tab-btn):not(.hamburger):not(.text-btn):not(.format-btn) { background-color: var(--primary-color); color: #fff; cursor: pointer; border: none; font-weight: bold; padding: 0.75rem 1.5rem; transition: opacity 0.2s; }
+button:not(.tab-btn):not(.hamburger):not(.text-btn):not(.format-btn):hover { opacity: 0.9; }
+button:disabled { background-color: var(--text-muted) !important; cursor: not-allowed; }
+
+/* Button Utilities */
+.danger-btn { background-color: var(--danger-color) !important; }
+.outline-btn { background-color: transparent !important; color: var(--text-color) !important; border: 1px solid var(--border-color) !important; width: 100%; margin-bottom: 1rem; }
+.outline-btn:hover { background-color: var(--bg-color) !important; }
+.text-btn { background: none; border: none; color: var(--danger-color); cursor: pointer; font-weight: bold; font-size: 0.9rem; }
+.text-btn:hover { text-decoration: underline; }
+
+/* Alarm Controls */
+.alarm-controls { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.5rem; }
+#alarm-status { font-weight: bold; color: var(--text-muted); }
+.hidden-input { display: none; width: 100%; margin-bottom: 1rem; }
+.hidden-input.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+.checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-size: 1rem; font-weight: bold; cursor: pointer; }
+.checkbox-label input { width: 1.2rem; height: 1.2rem; cursor: pointer; accent-color: var(--primary-color); }
+
+/* Embedded Bulletin Board */
+.announcement-board {
+    background-color: var(--bg-color); /* Adapts automatically to your Light/Dark mode */
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary-color);
+    padding: 1rem 1.5rem;
+    margin-top: 1.5rem;
+    border-radius: 6px;
+    text-align: left;
+}
+.board-header {
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+}
+#announcement-text {
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.4;
+}
+
+/* Announcement Pulse Animation */
+@keyframes urgentPulse {
+    0% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7); border-color: var(--primary-color); }
+    70% { box-shadow: 0 0 0 10px rgba(0, 123, 255, 0); border-color: var(--primary-color); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0); }
+}
+.highlight-pulse {
+    animation: urgentPulse 1.5s ease-out 3; /* Pulses 3 times */
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* Notification Toggle Switch */
+.notif-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.notif-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+/* Big Digital Clock */
+.digital-clock-container { text-align: center; margin-bottom: 2rem; padding: 2rem; background-color: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); }
+#digital-time { font-size: 4.5rem; font-weight: bold; font-variant-numeric: tabular-nums; color: var(--primary-color); line-height: 1; margin-bottom: 0.5rem; }
+#digital-date { font-size: 1.2rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; }
+@media (max-width: 480px) { #digital-time { font-size: 3rem; } #digital-date { font-size: 1rem; } }
+
+/* Excel Style Table */
+.table-container { max-height: 600px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px; }
+.excel-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.excel-table th, .excel-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); text-align: left; }
+.excel-table th { background-color: var(--bg-color); position: sticky; top: 0; font-weight: bold; color: var(--text-muted); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; z-index: 10; }
+.excel-table tbody tr { transition: background-color 0.2s; cursor: default; }
+.excel-table tbody tr:hover { background-color: var(--tab-hover); }
+.state-name { font-weight: bold; }
+.state-abbr { color: var(--text-muted); }
+.state-time { font-variant-numeric: tabular-nums; }
+
+/* Webcam */
+#webcam-video { width: 100%; max-width: 500px; border-radius: 8px; background: #000; display: block; margin-bottom: 1rem; }
+.btn-group { display: flex; flex-wrap: wrap; gap: 1rem; }
+
+/* Calculator */
+.calc-layout { display: flex; gap: 2rem; flex-wrap: wrap; align-items: flex-start; }
+.calc-main { flex: 1; min-width: 250px; max-width: 320px; }
+#calc-display { width: 100%; font-size: 2rem; text-align: right; margin-bottom: 1rem; padding: 1rem; background-color: var(--bg-color); }
+.calc-operators { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1rem; }
+.calc-operators .calc-primary { grid-column: span 4; background-color: #28a745; }
+.calc-operators .calc-split { grid-column: span 3; background-color: var(--primary-color); font-size: 1rem; }
+.calc-numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.calc-numpad.hidden { display: none; }
+.calc-numpad .numpad-zero { grid-column: span 2; }
+.calc-btn { font-size: 1.25rem; padding: 1rem !important; }
+
+/* Calculator History Pane */
+.calc-history-pane { flex: 1; min-width: 250px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; max-height: 450px; overflow-y: auto; }
+.history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+.history-header h3 { font-size: 1.1rem; color: var(--text-muted); }
+#calc-history-list { list-style: none; }
+#calc-history-list li { padding: 0.75rem 0; border-bottom: 1px dashed var(--border-color); font-size: 1.1rem; color: var(--text-color); display: flex; justify-content: space-between; word-break: break-all; }
+#calc-history-list li strong { color: var(--primary-color); margin-left: 1rem; }
+
+/* Notes */
+#note-area { 
+    width: 100%; 
+    min-height: 200px; 
+    height: 300px; 
+    resize: vertical; 
+}
+.note-counter {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 0.5rem;
+    font-weight: bold;
+}
+
+/* =========================================
+   Floating Quick Notes
+========================================= */
+.tab-panel.floating-mode {
+    position: fixed;
+    top: 80px;
+    right: 30px;
+    width: 350px;
+    height: 450px;
+    z-index: 9999;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    border: 1px solid var(--border-color);
+    display: flex !important;
+    flex-direction: column;
+    padding: 0; 
+    resize: both;
+    overflow: hidden;
+    background-color: var(--surface-color);
+    border-radius: 8px;
+}
+.tab-panel.floating-mode #notes-standard-header,
+.tab-panel.floating-mode #notes-desc {
+    display: none;
+}
+.tab-panel.floating-mode .tool-content {
+    padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.tab-panel.floating-mode #note-area {
+    flex: 1;
+    height: auto;
+    resize: none; 
+}
+
+/* The Grab Handle */
+.drag-handle {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    cursor: grab;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Subtle Footer & Secret Trigger */
+.app-footer { 
+    text-align: left; 
+    padding: 1rem 2rem; 
+    font-size: 0.65rem; 
+    color: var(--text-muted); 
+    margin-top: auto; 
+}
+
+/* Node.js Stealth Command Terminal */
+.hidden-terminal {
+    position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+    width: 600px; max-width: 90%; background: rgba(0, 0, 0, 0.95);
+    padding: 1rem 1.5rem; border-radius: 8px; border: 1px solid #333;
+    display: flex; align-items: center; gap: 1rem;
+    transition: top 0.2s ease-in-out; z-index: 9999;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.hidden-terminal.active { top: 20px; }
+.prompt-arrow { color: #00ff00; font-family: monospace; font-size: 1.5rem; font-weight: bold; }
+#command-input {
+    flex: 1; background: transparent; border: none; color: #00ff00;
+    font-family: monospace; font-size: 1.2rem; outline: none;
+}
+#command-input::placeholder { color: #005500; }
+
+/* Stealth Admin Panel */
+.hidden-admin {
+    display: none;
+    margin-top: 1rem;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 1rem;
+    animation: fadeIn 0.2s ease-in;
+}
+.hidden-admin.active {
+    display: block;
+}
+.admin-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+.admin-actions button {
+    flex: 1;
+    font-size: 0.85rem;
+}
+
+/* =========================================
+   Email-Style Admin Formatting Toolbar (Flat Tabs)
+========================================= */
+.editor-container {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+    background-color: var(--bg-color);
+}
+.format-toolbar {
+    display: flex;
+    background-color: var(--tab-hover); 
+    border-bottom: 1px solid var(--border-color);
+}
+.format-btn {
+    flex: 1; 
+    background: transparent !important; /* Force override global button */
+    color: var(--text-muted) !important; /* Force override global button */
+    border: none !important;
+    border-right: 1px solid var(--border-color) !important;
+    border-radius: 0 !important;
+    padding: 0.4rem 0.25rem !important; /* Tiny padding */
+    font-size: 0.7rem !important; /* Tiny font */
+    text-transform: uppercase; 
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: 0.2s;
+    font-weight: bold !important;
+    box-shadow: none !important;
+}
+.format-btn:last-child {
+    border-right: none !important; 
+}
+.format-btn:hover {
+    background-color: var(--border-color) !important;
+    color: var(--text-color) !important;
+}
+
+#admin-input {
+    width: 100%;
+    height: 80px;
+    padding: 0.75rem;
+    background-color: transparent;
+    color: var(--text-color);
+    border: none;
+    resize: vertical;
+    outline: none;
+    display: block;
+    margin-bottom: 0;
+    font-size: 0.95rem;
+}
+#admin-input:focus {
+    box-shadow: inset 0 0 0 2px var(--primary-color);
+}
+
+/* Styling for the broadcasted rich text */
+#announcement-text a {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+#announcement-text mark {
+    background-color: rgba(255, 215, 0, 0.4);
+    color: inherit;
+    padding: 0 0.2rem;
+    border-radius: 3px;
+}
+
+/* =========================================
+   Announcement Timestamp
+========================================= */
+.announcement-timestamp {
+    text-align: right;
+    font-size: 0.75rem; /* Slightly larger than footer */
+    color: var(--text-muted);
+    margin-top: 0.75rem;
+    font-weight: 500;
+}
+
+/* =========================================
+   Typewriter Header Animation
+========================================= */
+#typewriter-header {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 1.17em; /* Standard HTML h3 size */
+    margin: 0;
+    border-right: 2px solid var(--text-color); /* The cursor */
+    padding-right: 4px;
+    white-space: nowrap;
+    animation: blink-cursor 0.75s step-end infinite;
+}
+
+/* Makes the cursor blink just like a real terminal */
+@keyframes blink-cursor {
+    from, to { border-color: transparent; }
+    50% { border-color: var(--primary-color); }
+}
