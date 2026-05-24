@@ -5,7 +5,7 @@
 // --- Typewriter Header Animation ---
 const typewriterElement = document.getElementById('typewriter-header');
 if (typewriterElement) {
-    const textToType = "Back Opis";
+    const textToType = "back opis";
     
     function playTypewriter() {
         typewriterElement.innerHTML = ""; 
