@@ -1,4 +1,31 @@
+// ==========================================
+// BOPIS COMMAND CENTER - MAIN LOGIC
+// ==========================================
 
+// --- Typewriter Header Animation ---
+const typewriterElement = document.getElementById('typewriter-header');
+if (typewriterElement) {
+    const textToType = "Back Opis";
+    
+    function playTypewriter() {
+        typewriterElement.innerHTML = ""; // Clear existing text
+        let i = 0;
+        
+        function typeChar() {
+            if (i < textToType.length) {
+                typewriterElement.innerHTML += textToType.charAt(i);
+                i++;
+                setTimeout(typeChar, 150); // 150ms per letter typing speed
+            }
+        }
+        typeChar();
+    }
+
+    playTypewriter(); // Start immediately on page load
+    setInterval(playTypewriter, 60000); // Loop exactly every 1 minute
+}
+
+// --- Dark Mode Toggle ---
 const themeToggle = document.getElementById('theme-toggle');
 const currentTheme = localStorage.getItem('theme');
 
@@ -17,30 +44,7 @@ themeToggle.addEventListener('change', (e) => {
     }
 });
 
-
-const typewriterElement = document.getElementById('typewriter-header');
-if (typewriterElement) {
-    const textToType = "Back Opis";
-    
-    function playTypewriter() {
-        typewriterElement.innerHTML = ""; 
-        let i = 0;
-        
-        function typeChar() {
-            if (i < textToType.length) {
-                typewriterElement.innerHTML += textToType.charAt(i);
-                i++;
-                setTimeout(typeChar, 150); 
-            }
-        }
-        typeChar();
-    }
-
-    playTypewriter(); 
-    setInterval(playTypewriter, 60000); 
-}
-
-
+// --- Hamburger Menu & Tab Switching ---
 const hamburgerBtn = document.getElementById('hamburger-btn');
 const navTabs = document.getElementById('nav-tabs');
 const tabBtns = document.querySelectorAll('.tab-btn');
@@ -54,7 +58,7 @@ tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         tabBtns.forEach(b => b.classList.remove('active'));
         
-        
+        // Hide panels ONLY if they are not in floating mode
         tabPanels.forEach(p => {
             if (!p.classList.contains('floating-mode')) {
                 p.classList.remove('active');
@@ -71,9 +75,9 @@ tabBtns.forEach(btn => {
     });
 });
 
+// --- Stay Awake Toggle (Wake Lock API & Persistence) ---
 let wakeLock = null;
 const wakeToggle = document.getElementById('wake-toggle');
-
 
 async function requestWakeLock() {
     if (!('wakeLock' in navigator)) {
@@ -85,18 +89,15 @@ async function requestWakeLock() {
         console.log('BOpis Wake Lock: ACTIVE');
     } catch (err) {
         console.error(`Wake Lock error: ${err.message}`);
-        
         wakeToggle.checked = false;
         localStorage.setItem('stay_awake', 'off');
     }
 }
 
-
 if (localStorage.getItem('stay_awake') === 'on') {
     wakeToggle.checked = true;
     requestWakeLock();
 }
-
 
 wakeToggle.addEventListener('change', (e) => {
     if (e.target.checked) {
@@ -112,7 +113,6 @@ wakeToggle.addEventListener('change', (e) => {
     }
 });
 
-
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && localStorage.getItem('stay_awake') === 'on') {
         requestWakeLock(); 
@@ -120,6 +120,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 
+// --- 1. Alarm Clock ---
 const alarmInput = document.getElementById('alarm-time');
 const ringtoneSelect = document.getElementById('alarm-ringtone');
 const customUrlInput = document.getElementById('custom-url-input');
@@ -152,7 +153,9 @@ function playTone(type) {
         return;
     }
 
-    if (!audioCtx) return;
+    if (!audioCtx) audioCtx = new AudioContext();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
     const osc = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
     
@@ -199,16 +202,16 @@ ringtoneSelect.addEventListener('change', (e) => {
     }
 });
 
-const workerBlob = new Blob([`
-    let timer = null;
-    self.onmessage = function(e) {
-        if (e.data === 'start') {
-            timer = setInterval(() => self.postMessage('tick'), 1000);
-        } else if (e.data === 'stop') {
-            clearInterval(timer);
-        }
-    };
-`], { type: 'application/javascript' });
+const workerBlob = new Blob([
+    "let timer = null;" +
+    "self.onmessage = function(e) {" +
+    "    if (e.data === 'start') {" +
+    "        timer = setInterval(() => self.postMessage('tick'), 1000);" +
+    "    } else if (e.data === 'stop') {" +
+    "        clearInterval(timer);" +
+    "    }" +
+    "};"
+], { type: 'application/javascript' });
 const timerWorker = new Worker(URL.createObjectURL(workerBlob));
 
 let targetAlarmTime = null;
@@ -349,11 +352,12 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 
-
+// --- 2. Big Digital Clock & U.S Time Zones ---
 const stateTimeElements = [];
 
 function initTimeZonesTable() {
     const tbody = document.getElementById('timezone-tbody');
+    if (!tbody || typeof usStates === 'undefined') return;
 
     usStates.forEach(state => {
         const tr = document.createElement('tr');
@@ -384,8 +388,10 @@ initTimeZonesTable();
 function updateClocks() {
     const now = new Date();
     
-    document.getElementById('digital-time').innerText = now.toLocaleTimeString('en-US', { hour12: true });
-    document.getElementById('digital-date').innerText = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const digitalTime = document.getElementById('digital-time');
+    const digitalDate = document.getElementById('digital-date');
+    if (digitalTime) digitalTime.innerText = now.toLocaleTimeString('en-US', { hour12: true });
+    if (digitalDate) digitalDate.innerText = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     const options = { timeStyle: 'medium', hour12: true };
     stateTimeElements.forEach(item => {
@@ -396,86 +402,94 @@ setInterval(updateClocks, 1000);
 updateClocks();
 
 
-
+// --- 3. Floating Webcam (Picture-in-Picture, Capture, Kill Switch) ---
 const video = document.getElementById('webcam-video');
 const startWebcamBtn = document.getElementById('start-webcam-btn');
 const stopWebcamBtn = document.getElementById('stop-webcam-btn');
 const pipBtn = document.getElementById('pip-btn');
 const captureBtn = document.getElementById('capture-btn');
 
-startWebcamBtn.addEventListener('click', async () => {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = stream;
-        
-        pipBtn.disabled = false;
-        captureBtn.disabled = false;
-        stopWebcamBtn.disabled = false;
-        
-        startWebcamBtn.disabled = true;
-        startWebcamBtn.innerText = "Webcam Active";
-    } catch (err) {
-        alert("Could not access webcam. Please check permissions.");
-    }
-});
-
-stopWebcamBtn.addEventListener('click', () => {
-    if (document.pictureInPictureElement) {
-        document.exitPictureInPicture().catch(err => console.log(err));
-    }
-
-    if (video.srcObject) {
-        const tracks = video.srcObject.getTracks();
-        tracks.forEach(track => track.stop());
-        video.srcObject = null;
-    }
-
-    pipBtn.disabled = true;
-    captureBtn.disabled = true;
-    stopWebcamBtn.disabled = true;
-    
-    startWebcamBtn.disabled = false;
-    startWebcamBtn.innerText = "Start Webcam";
-});
-
-pipBtn.addEventListener('click', async () => {
-    if (document.pictureInPictureElement) {
-        document.exitPictureInPicture();
-    } else if (document.pictureInPictureEnabled) {
+if (startWebcamBtn) {
+    startWebcamBtn.addEventListener('click', async () => {
         try {
-            await video.requestPictureInPicture();
-        } catch(err) {
-            alert("Picture-in-Picture failed.");
-        }
-    }
-});
-
-captureBtn.addEventListener('click', async () => {
-    if (!video.srcObject) return;
-
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    canvas.toBlob(async (blob) => {
-        try {
-            const item = new ClipboardItem({ 'image/png': blob });
-            await navigator.clipboard.write([item]);
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
             
-            const originalText = captureBtn.innerText;
-            captureBtn.innerText = "Copied!";
-            setTimeout(() => { captureBtn.innerText = originalText; }, 2000);
+            pipBtn.disabled = false;
+            captureBtn.disabled = false;
+            stopWebcamBtn.disabled = false;
+            
+            startWebcamBtn.disabled = true;
+            startWebcamBtn.innerText = "Webcam Active";
         } catch (err) {
-            alert("Failed to copy image. Your browser might block clipboard access without secure HTTPS.");
-            console.error(err);
+            alert("Could not access webcam. Please check permissions.");
         }
-    }, 'image/png');
-});
+    });
+}
+
+if (stopWebcamBtn) {
+    stopWebcamBtn.addEventListener('click', () => {
+        if (document.pictureInPictureElement) {
+            document.exitPictureInPicture().catch(err => console.log(err));
+        }
+
+        if (video.srcObject) {
+            const tracks = video.srcObject.getTracks();
+            tracks.forEach(track => track.stop());
+            video.srcObject = null;
+        }
+
+        pipBtn.disabled = true;
+        captureBtn.disabled = true;
+        stopWebcamBtn.disabled = true;
+        
+        startWebcamBtn.disabled = false;
+        startWebcamBtn.innerText = "Start Webcam";
+    });
+}
+
+if (pipBtn) {
+    pipBtn.addEventListener('click', async () => {
+        if (document.pictureInPictureElement) {
+            document.exitPictureInPicture();
+        } else if (document.pictureInPictureEnabled) {
+            try {
+                await video.requestPictureInPicture();
+            } catch(err) {
+                alert("Picture-in-Picture failed.");
+            }
+        }
+    });
+}
+
+if (captureBtn) {
+    captureBtn.addEventListener('click', async () => {
+        if (!video.srcObject) return;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(async (blob) => {
+            try {
+                const item = new ClipboardItem({ 'image/png': blob });
+                await navigator.clipboard.write([item]);
+                
+                const originalText = captureBtn.innerText;
+                captureBtn.innerText = "✅ Copied!";
+                setTimeout(() => { captureBtn.innerText = originalText; }, 2000);
+            } catch (err) {
+                alert("Failed to copy image. Your browser might block clipboard access without secure HTTPS.");
+                console.error(err);
+            }
+        }, 'image/png');
+    });
+}
 
 
-
+// --- 4. Calculator (Tricky Split Div, History, Keyboard Fix) ---
 const calcDisplay = document.getElementById('calc-display');
 const calcNumpad = document.getElementById('calc-numpad');
 const toggleNumpadBtn = document.getElementById('toggle-numpad-btn');
@@ -488,25 +502,26 @@ function numToWord(n) {
     return numWords[n] || n.toString();
 }
 
-toggleNumpadBtn.addEventListener('click', () => {
-    calcNumpad.classList.toggle('hidden');
-    if (calcNumpad.classList.contains('hidden')) {
-        toggleNumpadBtn.innerText = "Show On-Screen Numpad";
-    } else {
-        toggleNumpadBtn.innerText = "Hide On-Screen Numpad";
-    }
-});
+if (toggleNumpadBtn) {
+    toggleNumpadBtn.addEventListener('click', () => {
+        calcNumpad.classList.toggle('hidden');
+        if (calcNumpad.classList.contains('hidden')) {
+            toggleNumpadBtn.innerText = "Show On-Screen Numpad";
+        } else {
+            toggleNumpadBtn.innerText = "Hide On-Screen Numpad";
+        }
+    });
+}
 
 function appendCalc(value) {
     currentCalc += value;
-    calcDisplay.value = currentCalc;
+    if (calcDisplay) calcDisplay.value = currentCalc;
 }
 
 function clearCalc() {
     currentCalc = "";
-    calcDisplay.value = "";
+    if (calcDisplay) calcDisplay.value = "";
 }
-
 
 function calculateSplit(expression) {
     const parts = expression.split(' Split ');
@@ -524,9 +539,7 @@ function calculateSplit(expression) {
         const Q = Math.floor(N / D);
         const R = N % D;
         
-        
         if (R === 0) return `${numToWord(D)} ${Q}s`;
-        
         
         const countBase = D - R;
         const countUpper = R;
@@ -548,7 +561,7 @@ function calculateResult() {
             const result = calculateSplit(currentCalc);
             addHistoryItem(currentCalc, result);
             currentCalc = ""; 
-            calcDisplay.value = result;
+            if (calcDisplay) calcDisplay.value = result;
             return;
         }
 
@@ -558,26 +571,29 @@ function calculateResult() {
         addHistoryItem(currentCalc, result);
         
         currentCalc = result;
-        calcDisplay.value = currentCalc;
+        if (calcDisplay) calcDisplay.value = currentCalc;
     } catch (err) {
-        calcDisplay.value = "Error";
+        if (calcDisplay) calcDisplay.value = "Error";
         currentCalc = "";
     }
 }
 
 function addHistoryItem(expression, result) {
+    if (!historyList) return;
     const li = document.createElement('li');
     li.innerHTML = `<span>${expression}</span> <strong>= ${result}</strong>`;
     historyList.prepend(li);
 }
 
-clearHistoryBtn.addEventListener('click', () => {
-    historyList.innerHTML = "";
-});
+if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener('click', () => {
+        historyList.innerHTML = "";
+    });
+}
 
 document.addEventListener('keydown', (e) => {
     const calcPanel = document.getElementById('calculator');
-    if (!calcPanel.classList.contains('active')) return;
+    if (!calcPanel || !calcPanel.classList.contains('active')) return;
 
     const activeTag = document.activeElement.tagName;
     const activeType = document.activeElement.type;
@@ -604,7 +620,7 @@ document.addEventListener('keydown', (e) => {
         } else {
             currentCalc = currentCalc.slice(0, -1);
         }
-        calcDisplay.value = currentCalc;
+        if (calcDisplay) calcDisplay.value = currentCalc;
     } 
     else if (key === 'Escape' || key.toLowerCase() === 'c') {
         e.preventDefault();
@@ -613,33 +629,32 @@ document.addEventListener('keydown', (e) => {
 });
 
 
+// --- 5. Quick Notes ---
 const noteArea = document.getElementById('note-area');
 const noteCounter = document.getElementById('note-counter');
 const savedNote = localStorage.getItem('quick_notes');
 
 function updateCounters() {
+    if (!noteArea || !noteCounter) return;
     const text = noteArea.value;
     const charCount = text.length;
-    
-    
     const wordCount = text.trim() === "" ? 0 : text.trim().split(/\s+/).length;
-    
     noteCounter.innerText = `Words: ${wordCount} | Characters: ${charCount} / 2000`;
 }
 
-
-if (savedNote) {
+if (noteArea && savedNote) {
     noteArea.value = savedNote;
     updateCounters();
 }
 
+if (noteArea) {
+    noteArea.addEventListener('input', (e) => {
+        localStorage.setItem('quick_notes', e.target.value);
+        updateCounters();
+    });
+}
 
-noteArea.addEventListener('input', (e) => {
-    localStorage.setItem('quick_notes', e.target.value);
-    updateCounters();
-});
-
-
+// --- Floating Notes Logic ---
 const notesPanel = document.getElementById('notes');
 const popoutNotesBtn = document.getElementById('popout-notes-btn');
 const dockNotesBtn = document.getElementById('dock-notes-btn');
@@ -656,14 +671,12 @@ function dockNotes() {
     notesPanel.classList.remove('floating-mode');
     dragHandle.style.display = 'none';
     
-    
     notesPanel.style.top = ''; 
     notesPanel.style.left = '';
     notesPanel.style.right = '';
     notesPanel.style.bottom = '';
     notesPanel.style.width = '';
     notesPanel.style.height = '';
-    
     
     const activeTabBtn = document.querySelector('.tab-btn.active');
     if (activeTabBtn && activeTabBtn.dataset.target !== 'notes') {
@@ -675,19 +688,20 @@ function dockNotes() {
     localStorage.setItem('notes_floating', 'false');
 }
 
-popoutNotesBtn.addEventListener('click', popOutNotes);
-dockNotesBtn.addEventListener('click', dockNotes);
-
+if (popoutNotesBtn) popoutNotesBtn.addEventListener('click', popOutNotes);
+if (dockNotesBtn) dockNotesBtn.addEventListener('click', dockNotes);
 
 let isDraggingNotes = false;
 let dragOffsetX, dragOffsetY;
 
-dragHandle.addEventListener('mousedown', (e) => {
-    isDraggingNotes = true;
-    const rect = notesPanel.getBoundingClientRect();
-    dragOffsetX = e.clientX - rect.left;
-    dragOffsetY = e.clientY - rect.top;
-});
+if (dragHandle) {
+    dragHandle.addEventListener('mousedown', (e) => {
+        isDraggingNotes = true;
+        const rect = notesPanel.getBoundingClientRect();
+        dragOffsetX = e.clientX - rect.left;
+        dragOffsetY = e.clientY - rect.top;
+    });
+}
 
 document.addEventListener('mousemove', (e) => {
     if (!isDraggingNotes) return;
@@ -699,29 +713,25 @@ document.addEventListener('mousemove', (e) => {
     notesPanel.style.top = `${e.clientY - dragOffsetY}px`;
 });
 
-
 document.addEventListener('mouseup', () => {
     if (isDraggingNotes) {
         isDraggingNotes = false;
         localStorage.setItem('notes_left', notesPanel.style.left);
         localStorage.setItem('notes_top', notesPanel.style.top);
     }
-    
-    if (notesPanel.classList.contains('floating-mode')) {
+    if (notesPanel && notesPanel.classList.contains('floating-mode')) {
         localStorage.setItem('notes_width', notesPanel.style.width);
         localStorage.setItem('notes_height', notesPanel.style.height);
     }
 });
 
-
 window.addEventListener('resize', () => {
-    if (window.innerWidth <= 768 && notesPanel.classList.contains('floating-mode')) {
+    if (window.innerWidth <= 768 && notesPanel && notesPanel.classList.contains('floating-mode')) {
         dockNotes();
     }
 });
 
-
-if (localStorage.getItem('notes_floating') === 'true' && window.innerWidth > 768) {
+if (notesPanel && localStorage.getItem('notes_floating') === 'true' && window.innerWidth > 768) {
     notesPanel.style.left = localStorage.getItem('notes_left') || '';
     notesPanel.style.top = localStorage.getItem('notes_top') || '';
     notesPanel.style.width = localStorage.getItem('notes_width') || '';
@@ -730,10 +740,12 @@ if (localStorage.getItem('notes_floating') === 'true' && window.innerWidth > 768
 }
 
 
-
-
+// ==========================================
+// 8. FIREBASE ANNOUNCEMENT BOARD & NOTIFICATIONS
+// ==========================================
 const announcementBoard = document.getElementById('announcement-board');
 const announcementText = document.getElementById('announcement-text');
+const announcementTime = document.getElementById('announcement-timestamp');
 const secretTrigger = document.getElementById('secret-trigger');
 const adminPanel = document.getElementById('admin-panel');
 const adminInput = document.getElementById('admin-input');
@@ -741,9 +753,8 @@ const adminBroadcastBtn = document.getElementById('admin-broadcast-btn');
 const adminCancelBtn = document.getElementById('admin-cancel-btn');
 const notifToggle = document.getElementById('notif-toggle');
 
-
+// --- Notification Setup ---
 if (notifToggle) {
-    
     notifToggle.checked = (Notification.permission === 'granted');
     
     notifToggle.addEventListener('change', (e) => {
@@ -761,41 +772,45 @@ function pushDesktopNotification(text) {
     if (notifToggle && notifToggle.checked && Notification.permission === 'granted') {
         const notif = new Notification('BOpis Command Center', {
             body: text,
-            icon: 'https:
+            icon: 'https://cdn-icons-png.flaticon.com/512/1827/1827370.png'
         });
         notif.onclick = () => window.focus(); 
     }
 }
 
-
+// --- FIREBASE CONFIG ---
 const firebaseConfig = {
     apiKey: "AIzaSyBcWb6Wy-W5DzjL7RVFFLLzOecHbawx1lg",
     authDomain: "bopis-d5300.firebaseapp.com",
-    databaseURL: "https:
+    databaseURL: "https://bopis-d5300-default-rtdb.firebaseio.com", 
     projectId: "bopis-d5300",
     storageBucket: "bopis-d5300.firebasestorage.app",
     messagingSenderId: "1045370937906",
     appId: "1:1045370937906:web:26c28ab8587f9d20ed122b"
 };
 
-
+// Initialize Firebase
 if (typeof firebase !== 'undefined' && !firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    
-    
-    const announcementTime = document.getElementById('announcement-timestamp');
 
-    
+    // 1. Live Listener (Direct UI update & Notifications)
     let isInitialLoad = true;
     let currentMessage = "";
 
     db.ref('announcement').on('value', (snapshot) => {
         const data = snapshot.val();
         
+        let msg = null;
+        let timestamp = "";
         
-        const msg = data ? data.message : null;
-        const timestamp = data ? data.timestamp : "";
+        // Failsafe: Handles both new JSON object and old plain-text string
+        if (typeof data === 'string') {
+            msg = data;
+        } else if (data) {
+            msg = data.message;
+            timestamp = data.timestamp || "";
+        }
         
         if (msg) {
             if (announcementText) announcementText.innerHTML = msg;
@@ -820,7 +835,7 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
         isInitialLoad = false;
     });
 
-    
+    // 2. Secret Admin Trigger (5-Tap)
     let taps = 0;
     let tapTimer;
     if (secretTrigger) {
@@ -843,12 +858,11 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
         });
     }
 
-    
+    // 3. Admin Actions (Broadcast & Cancel)
     if (adminBroadcastBtn) {
         adminBroadcastBtn.addEventListener('click', () => {
             const val = adminInput.value.trim();
             if (val) {
-                
                 const now = new Date();
                 const timeString = now.toLocaleString('en-US', { 
                     month: 'short', 
@@ -858,7 +872,6 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
                     minute: '2-digit', 
                     hour12: true 
                 });
-                
                 
                 db.ref('announcement').set({
                     message: val,
@@ -878,7 +891,7 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
         });
     }
 
-    
+    // 4. Formatting Toolbar Logic
     const formatBtns = document.querySelectorAll('.format-btn');
     if (formatBtns) {
         formatBtns.forEach(btn => {
@@ -891,7 +904,7 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
                 let formattedText = "";
 
                 if (tag === 'a') {
-                    const url = prompt("Enter the web link (URL):", "https:
+                    const url = prompt("Enter the web link (URL):", "https://");
                     if (!url) return; 
                     formattedText = `<a href="${url}" target="_blank">${selectedText || 'Click Here'}</a>`;
                 } else {
