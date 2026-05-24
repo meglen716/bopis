@@ -144,19 +144,6 @@ button:disabled { background-color: var(--text-muted) !important; cursor: not-al
     background-color: rgba(0, 123, 255, 0.05);
 }
 
-/* Notification Toggle Switch */
-.notif-toggle-container {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.notif-label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    font-weight: bold;
-    letter-spacing: 0.5px;
-}
-
 /* Big Digital Clock */
 .digital-clock-container { text-align: center; margin-bottom: 2rem; padding: 2rem; background-color: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); }
 #digital-time { font-size: 4.5rem; font-weight: bold; font-variant-numeric: tabular-nums; color: var(--primary-color); line-height: 1; margin-bottom: 0.5rem; }
@@ -352,17 +339,27 @@ button:disabled { background-color: var(--text-muted) !important; cursor: not-al
 
 #admin-input {
     width: 100%;
-    height: 80px;
+    height: 120px; /* Made it slightly taller for better rich-text editing */
     padding: 0.75rem;
     background-color: transparent;
     color: var(--text-color);
     border: none;
-    resize: vertical;
+    overflow-y: auto; /* Adds scrollbar if text gets too long */
     outline: none;
     display: block;
     margin-bottom: 0;
     font-size: 0.95rem;
+    line-height: 1.5;
 }
+
+/* CSS trick to create a placeholder for a contenteditable div */
+#admin-input:empty:before {
+    content: attr(data-placeholder);
+    color: var(--text-muted);
+    pointer-events: none;
+    display: block; 
+}
+
 #admin-input:focus {
     box-shadow: inset 0 0 0 2px var(--primary-color);
 }
@@ -407,4 +404,18 @@ button:disabled { background-color: var(--text-muted) !important; cursor: not-al
 @keyframes blink-cursor {
     from, to { border-color: transparent; }
     50% { border-color: var(--primary-color); }
+}
+
+/* =========================================
+   Security Login Shake Animation
+========================================= */
+@keyframes shakeError {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+}
+.shake-error {
+    animation: shakeError 0.3s ease-in-out;
+    border-color: var(--danger-color) !important;
+    color: var(--danger-color) !important;
 }

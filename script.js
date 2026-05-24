@@ -8,21 +8,21 @@ if (typewriterElement) {
     const textToType = "Back Opis";
     
     function playTypewriter() {
-        typewriterElement.innerHTML = ""; // Clear existing text
+        typewriterElement.innerHTML = ""; 
         let i = 0;
         
         function typeChar() {
             if (i < textToType.length) {
                 typewriterElement.innerHTML += textToType.charAt(i);
                 i++;
-                setTimeout(typeChar, 150); // 150ms per letter typing speed
+                setTimeout(typeChar, 150); 
             }
         }
         typeChar();
     }
 
-    playTypewriter(); // Start immediately on page load
-    setInterval(playTypewriter, 60000); // Loop exactly every 1 minute
+    playTypewriter(); 
+    setInterval(playTypewriter, 60000); 
 }
 
 // --- Dark Mode Toggle ---
@@ -31,18 +31,20 @@ const currentTheme = localStorage.getItem('theme');
 
 if (currentTheme === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
-    themeToggle.checked = true;
+    if(themeToggle) themeToggle.checked = true;
 }
 
-themeToggle.addEventListener('change', (e) => {
-    if (e.target.checked) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-    } else {
-        document.documentElement.removeAttribute('data-theme');
-        localStorage.setItem('theme', 'light');
-    }
-});
+if(themeToggle) {
+    themeToggle.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'light');
+        }
+    });
+}
 
 // --- Hamburger Menu & Tab Switching ---
 const hamburgerBtn = document.getElementById('hamburger-btn');
@@ -50,15 +52,16 @@ const navTabs = document.getElementById('nav-tabs');
 const tabBtns = document.querySelectorAll('.tab-btn');
 const tabPanels = document.querySelectorAll('.tab-panel');
 
-hamburgerBtn.addEventListener('click', () => {
-    navTabs.classList.toggle('open');
-});
+if(hamburgerBtn) {
+    hamburgerBtn.addEventListener('click', () => {
+        navTabs.classList.toggle('open');
+    });
+}
 
 tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         tabBtns.forEach(b => b.classList.remove('active'));
         
-        // Hide panels ONLY if they are not in floating mode
         tabPanels.forEach(p => {
             if (!p.classList.contains('floating-mode')) {
                 p.classList.remove('active');
@@ -69,49 +72,44 @@ tabBtns.forEach(btn => {
         const target = document.getElementById(btn.dataset.target);
         if (target) target.classList.add('active');
 
-        if (window.innerWidth <= 768) {
+        if (window.innerWidth <= 768 && navTabs) {
             navTabs.classList.remove('open');
         }
     });
 });
 
-// --- Stay Awake Toggle (Wake Lock API & Persistence) ---
+// --- Stay Awake Toggle ---
 let wakeLock = null;
 const wakeToggle = document.getElementById('wake-toggle');
 
 async function requestWakeLock() {
-    if (!('wakeLock' in navigator)) {
-        console.warn('Wake Lock API not supported.');
-        return;
-    }
+    if (!('wakeLock' in navigator)) return;
     try {
         wakeLock = await navigator.wakeLock.request('screen');
-        console.log('BOpis Wake Lock: ACTIVE');
     } catch (err) {
-        console.error(`Wake Lock error: ${err.message}`);
-        wakeToggle.checked = false;
+        if(wakeToggle) wakeToggle.checked = false;
         localStorage.setItem('stay_awake', 'off');
     }
 }
 
-if (localStorage.getItem('stay_awake') === 'on') {
-    wakeToggle.checked = true;
-    requestWakeLock();
-}
-
-wakeToggle.addEventListener('change', (e) => {
-    if (e.target.checked) {
-        localStorage.setItem('stay_awake', 'on');
+if (wakeToggle) {
+    if (localStorage.getItem('stay_awake') === 'on') {
+        wakeToggle.checked = true;
         requestWakeLock();
-    } else {
-        localStorage.setItem('stay_awake', 'off');
-        if (wakeLock !== null) {
-            wakeLock.release();
-            wakeLock = null;
-            console.log('BOpis Wake Lock: DISABLED');
-        }
     }
-});
+    wakeToggle.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            localStorage.setItem('stay_awake', 'on');
+            requestWakeLock();
+        } else {
+            localStorage.setItem('stay_awake', 'off');
+            if (wakeLock !== null) {
+                wakeLock.release();
+                wakeLock = null;
+            }
+        }
+    });
+}
 
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && localStorage.getItem('stay_awake') === 'on') {
@@ -135,7 +133,6 @@ const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx = null;
 let isRinging = false;
 let toneInterval = null;
-
 let customAudio = new Audio();
 
 function playTone(type) {
@@ -148,7 +145,6 @@ function playTone(type) {
         customAudio.loop = loopCheckbox.checked; 
         customAudio.play().catch(e => {
             alert("Could not play the link. Ensure the link is valid.");
-            console.error(e);
         });
         return;
     }
@@ -191,16 +187,18 @@ function playTone(type) {
     }
 }
 
-ringtoneSelect.addEventListener('change', (e) => {
-    if (e.target.value === 'direct-url') {
-        customUrlInput.classList.add('active');
-    } else {
-        customUrlInput.classList.remove('active');
-        if (!audioCtx) audioCtx = new AudioContext();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        playTone(e.target.value);
-    }
-});
+if(ringtoneSelect) {
+    ringtoneSelect.addEventListener('change', (e) => {
+        if (e.target.value === 'direct-url') {
+            customUrlInput.classList.add('active');
+        } else {
+            customUrlInput.classList.remove('active');
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            playTone(e.target.value);
+        }
+    });
+}
 
 const workerBlob = new Blob([
     "let timer = null;" +
@@ -232,7 +230,7 @@ function updateCountdownUI() {
     const alarmDate = getNextAlarmDate(targetAlarmTime);
     const diffMs = alarmDate - now;
 
-    if (diffMs > 0) {
+    if (diffMs > 0 && countdownDisplay) {
         const h = Math.floor(diffMs / (1000 * 60 * 60));
         const m = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
         const s = Math.floor((diffMs % (1000 * 60)) / 1000);
@@ -251,10 +249,10 @@ function initiateAlarm(time, ringtone, customUrl, isLooping, isRestoring = false
     if (!audioCtx) audioCtx = new AudioContext();
     if (audioCtx.state === 'suspended') audioCtx.resume();
 
-    alarmStatus.innerText = `Alarm set for ${targetAlarmTime}`;
-    setAlarmBtn.style.display = 'none';
-    cancelAlarmBtn.style.display = 'inline-block';
-    countdownDisplay.style.display = 'block';
+    if(alarmStatus) alarmStatus.innerText = `Alarm set for ${targetAlarmTime}`;
+    if(setAlarmBtn) setAlarmBtn.style.display = 'none';
+    if(cancelAlarmBtn) cancelAlarmBtn.style.display = 'inline-block';
+    if(countdownDisplay) countdownDisplay.style.display = 'block';
     
     updateCountdownUI();
     timerWorker.postMessage('start');
@@ -266,21 +264,25 @@ function initiateAlarm(time, ringtone, customUrl, isLooping, isRestoring = false
     }
 }
 
-setAlarmBtn.addEventListener('click', () => {
-    if (!alarmInput.value) return alert("Please select a time.");
-    initiateAlarm(alarmInput.value, ringtoneSelect.value, customUrlInput.value, loopCheckbox.checked);
-});
+if(setAlarmBtn) {
+    setAlarmBtn.addEventListener('click', () => {
+        if (!alarmInput.value) return alert("Please select a time.");
+        initiateAlarm(alarmInput.value, ringtoneSelect.value, customUrlInput.value, loopCheckbox.checked);
+    });
+}
 
-cancelAlarmBtn.addEventListener('click', () => {
-    targetAlarmTime = null;
-    timerWorker.postMessage('stop');
-    localStorage.removeItem('saved_alarm');
-    
-    setAlarmBtn.style.display = 'block';
-    cancelAlarmBtn.style.display = 'none';
-    countdownDisplay.style.display = 'none';
-    alarmStatus.innerText = "No alarm set.";
-});
+if(cancelAlarmBtn) {
+    cancelAlarmBtn.addEventListener('click', () => {
+        targetAlarmTime = null;
+        timerWorker.postMessage('stop');
+        localStorage.removeItem('saved_alarm');
+        
+        if(setAlarmBtn) setAlarmBtn.style.display = 'block';
+        if(cancelAlarmBtn) cancelAlarmBtn.style.display = 'none';
+        if(countdownDisplay) countdownDisplay.style.display = 'none';
+        if(alarmStatus) alarmStatus.innerText = "No alarm set.";
+    });
+}
 
 timerWorker.onmessage = function(e) {
     if (e.data === 'tick' && targetAlarmTime && !isRinging) {
@@ -302,10 +304,10 @@ function triggerAlarm() {
     timerWorker.postMessage('stop');
     localStorage.removeItem('saved_alarm'); 
     
-    alarmStatus.innerText = "⏰ ALARM RINGING! ⏰";
-    countdownDisplay.style.display = 'none';
-    cancelAlarmBtn.style.display = 'none';
-    stopAlarmBtn.style.display = 'block';
+    if(alarmStatus) alarmStatus.innerText = "⏰ ALARM RINGING! ⏰";
+    if(countdownDisplay) countdownDisplay.style.display = 'none';
+    if(cancelAlarmBtn) cancelAlarmBtn.style.display = 'none';
+    if(stopAlarmBtn) stopAlarmBtn.style.display = 'block';
     
     const selectedTone = ringtoneSelect.value;
     const isLooping = loopCheckbox.checked;
@@ -320,29 +322,31 @@ function triggerAlarm() {
     }
 }
 
-stopAlarmBtn.addEventListener('click', () => {
-    isRinging = false;
-    clearInterval(toneInterval);
-    customAudio.pause();
-    customAudio.currentTime = 0;
-    
-    targetAlarmTime = null;
-    alarmStatus.innerText = "No alarm set.";
-    
-    stopAlarmBtn.style.display = 'none';
-    setAlarmBtn.style.display = 'block';
-});
+if(stopAlarmBtn) {
+    stopAlarmBtn.addEventListener('click', () => {
+        isRinging = false;
+        clearInterval(toneInterval);
+        customAudio.pause();
+        customAudio.currentTime = 0;
+        
+        targetAlarmTime = null;
+        if(alarmStatus) alarmStatus.innerText = "No alarm set.";
+        
+        if(stopAlarmBtn) stopAlarmBtn.style.display = 'none';
+        if(setAlarmBtn) setAlarmBtn.style.display = 'block';
+    });
+}
 
 window.addEventListener('DOMContentLoaded', () => {
     const savedAlarm = localStorage.getItem('saved_alarm');
-    if (savedAlarm) {
+    if (savedAlarm && alarmInput) {
         const data = JSON.parse(savedAlarm);
         
         alarmInput.value = data.time;
         ringtoneSelect.value = data.ringtone;
-        loopCheckbox.checked = data.isLooping !== undefined ? data.isLooping : true;
+        if(loopCheckbox) loopCheckbox.checked = data.isLooping !== undefined ? data.isLooping : true;
         
-        if (data.ringtone === 'direct-url') {
+        if (data.ringtone === 'direct-url' && customUrlInput) {
             customUrlInput.value = data.customUrl || '';
             customUrlInput.classList.add('active');
         }
@@ -433,7 +437,7 @@ if (stopWebcamBtn) {
             document.exitPictureInPicture().catch(err => console.log(err));
         }
 
-        if (video.srcObject) {
+        if (video && video.srcObject) {
             const tracks = video.srcObject.getTracks();
             tracks.forEach(track => track.stop());
             video.srcObject = null;
@@ -482,7 +486,6 @@ if (captureBtn) {
                 setTimeout(() => { captureBtn.innerText = originalText; }, 2000);
             } catch (err) {
                 alert("Failed to copy image. Your browser might block clipboard access without secure HTTPS.");
-                console.error(err);
             }
         }, 'image/png');
     });
@@ -663,13 +666,13 @@ const dragHandle = document.getElementById('notes-drag-handle');
 function popOutNotes() {
     if (window.innerWidth <= 768) return; 
     notesPanel.classList.add('floating-mode');
-    dragHandle.style.display = 'flex';
+    if(dragHandle) dragHandle.style.display = 'flex';
     localStorage.setItem('notes_floating', 'true');
 }
 
 function dockNotes() {
     notesPanel.classList.remove('floating-mode');
-    dragHandle.style.display = 'none';
+    if(dragHandle) dragHandle.style.display = 'none';
     
     notesPanel.style.top = ''; 
     notesPanel.style.left = '';
@@ -741,7 +744,7 @@ if (notesPanel && localStorage.getItem('notes_floating') === 'true' && window.in
 
 
 // ==========================================
-// 8. FIREBASE ANNOUNCEMENT BOARD & NOTIFICATIONS
+// 8. FIREBASE ANNOUNCEMENT BOARD
 // ==========================================
 const announcementBoard = document.getElementById('announcement-board');
 const announcementText = document.getElementById('announcement-text');
@@ -751,32 +754,6 @@ const adminPanel = document.getElementById('admin-panel');
 const adminInput = document.getElementById('admin-input');
 const adminBroadcastBtn = document.getElementById('admin-broadcast-btn');
 const adminCancelBtn = document.getElementById('admin-cancel-btn');
-const notifToggle = document.getElementById('notif-toggle');
-
-// --- Notification Setup ---
-if (notifToggle) {
-    notifToggle.checked = (Notification.permission === 'granted');
-    
-    notifToggle.addEventListener('change', (e) => {
-        if (e.target.checked && Notification.permission !== 'granted') {
-            Notification.requestPermission().then(permission => {
-                if (permission !== 'granted') {
-                    notifToggle.checked = false; 
-                }
-            });
-        }
-    });
-}
-
-function pushDesktopNotification(text) {
-    if (notifToggle && notifToggle.checked && Notification.permission === 'granted') {
-        const notif = new Notification('BOpis Command Center', {
-            body: text,
-            icon: 'https://cdn-icons-png.flaticon.com/512/1827/1827370.png'
-        });
-        notif.onclick = () => window.focus(); 
-    }
-}
 
 // --- FIREBASE CONFIG ---
 const firebaseConfig = {
@@ -794,7 +771,7 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. Live Listener (Direct UI update & Notifications)
+    // 1. Live Listener (Direct UI update ONLY, no native notifications)
     let isInitialLoad = true;
     let currentMessage = "";
 
@@ -804,7 +781,6 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
         let msg = null;
         let timestamp = "";
         
-        // Failsafe: Handles both new JSON object and old plain-text string
         if (typeof data === 'string') {
             msg = data;
         } else if (data) {
@@ -816,14 +792,9 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
             if (announcementText) announcementText.innerHTML = msg;
             if (announcementTime) announcementTime.innerText = timestamp;
             
-            if (!isInitialLoad && msg !== currentMessage) {
-                const plainText = announcementText.innerText; 
-                pushDesktopNotification(plainText);
-                
-                if (announcementBoard) {
-                    announcementBoard.classList.add('highlight-pulse');
-                    setTimeout(() => announcementBoard.classList.remove('highlight-pulse'), 5000);
-                }
+            if (!isInitialLoad && msg !== currentMessage && announcementBoard) {
+                announcementBoard.classList.add('highlight-pulse');
+                setTimeout(() => announcementBoard.classList.remove('highlight-pulse'), 5000);
             }
             currentMessage = msg;
         } else {
@@ -835,6 +806,12 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
         isInitialLoad = false;
     });
 
+    // --- Secure Authentication Setup ---
+    const loginPanel = document.getElementById('login-panel');
+    const adminPinInput = document.getElementById('admin-pin-input');
+    const adminLoginBtn = document.getElementById('admin-login-btn');
+    const loginError = document.getElementById('login-error');
+
     // 2. Secret Admin Trigger (5-Tap)
     let taps = 0;
     let tapTimer;
@@ -843,12 +820,19 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
             taps++;
             clearTimeout(tapTimer);
             if (taps >= 5) {
-                if (adminPanel) {
-                    const isOpening = !adminPanel.classList.contains('active');
-                    adminPanel.classList.toggle('active');
-                    
-                    if (isOpening) {
-                        adminInput.value = currentMessage || "";
+                if (adminPanel && loginPanel) {
+                    // If the editor is already open, 5-tapping closes it.
+                    if (adminPanel.classList.contains('active')) {
+                        adminPanel.classList.remove('active');
+                    } else {
+                        // Otherwise, open the Login Panel and lock it down
+                        loginPanel.classList.toggle('active');
+                        if (loginPanel.classList.contains('active')) {
+                            adminPinInput.value = '';
+                            adminPinInput.focus();
+                            loginError.style.display = 'none';
+                            adminPinInput.classList.remove('shake-error');
+                        }
                     }
                 }
                 taps = 0;
@@ -858,10 +842,50 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
         });
     }
 
+    // --- Firebase PIN Validation ---
+    function verifyAdminAccess() {
+        if (!adminPinInput) return;
+        const enteredPin = adminPinInput.value.trim();
+
+        // Securely read the PIN from the Firebase Database
+        db.ref('admin/pin').once('value').then((snapshot) => {
+            let dbPin = snapshot.val();
+
+            // Authentication Check
+            if (enteredPin === dbPin.toString()) {
+                // SUCCESS: Hide login, Show editor, Load message
+                loginPanel.classList.remove('active');
+                adminPanel.classList.add('active');
+                if (adminInput) adminInput.innerHTML = currentMessage || "";
+            } else {
+                // FAILED: Trigger red shake animation
+                adminPinInput.classList.add('shake-error');
+                loginError.style.display = 'block';
+                adminPinInput.value = ''; // Wipe the wrong guess
+                
+                // Remove the animation class so it can be triggered again
+                setTimeout(() => adminPinInput.classList.remove('shake-error'), 300);
+            }
+        }).catch(err => {
+            console.error("Firebase Auth Error: ", err);
+        });
+    }
+
+    // Trigger verification on Button Click OR pressing the 'Enter' key
+    if (adminLoginBtn) {
+        adminLoginBtn.addEventListener('click', verifyAdminAccess);
+    }
+    if (adminPinInput) {
+        adminPinInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') verifyAdminAccess();
+        });
+    }
+
     // 3. Admin Actions (Broadcast & Cancel)
     if (adminBroadcastBtn) {
         adminBroadcastBtn.addEventListener('click', () => {
-            const val = adminInput.value.trim();
+            if (!adminInput) return;
+            const val = adminInput.innerHTML.trim();
             if (val) {
                 const now = new Date();
                 const timeString = now.toLocaleString('en-US', { 
@@ -878,7 +902,7 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
                     timestamp: timeString
                 });
                 
-                adminInput.value = '';
+                adminInput.innerHTML = '';
                 if (adminPanel) adminPanel.classList.remove('active');
             }
         });
@@ -886,33 +910,46 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
 
     if (adminCancelBtn) {
         adminCancelBtn.addEventListener('click', () => {
-            adminInput.value = ''; 
+            if (adminInput) adminInput.innerHTML = ''; 
             if (adminPanel) adminPanel.classList.remove('active'); 
         });
     }
 
-    // 4. Formatting Toolbar Logic
+    // 4. Formatting Toolbar Logic (Real-Time Visuals)
     const formatBtns = document.querySelectorAll('.format-btn');
-    if (formatBtns) {
+    if (formatBtns && adminInput) {
         formatBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            // We use 'mousedown' and 'preventDefault' so the text box doesn't lose focus when you click a button
+            btn.addEventListener('mousedown', (e) => {
                 e.preventDefault(); 
-                const tag = btn.dataset.tag;
-                const start = adminInput.selectionStart;
-                const end = adminInput.selectionEnd;
-                const selectedText = adminInput.value.substring(start, end);
-                let formattedText = "";
+                
+                const cmd = btn.dataset.cmd;
+                let val = btn.dataset.val || null;
 
-                if (tag === 'a') {
+                if (cmd === 'createLink') {
                     const url = prompt("Enter the web link (URL):", "https://");
                     if (!url) return; 
-                    formattedText = `<a href="${url}" target="_blank">${selectedText || 'Click Here'}</a>`;
-                } else {
-                    formattedText = `<${tag}>${selectedText}</${tag}>`;
+                    val = url;
                 }
 
-                adminInput.setRangeText(formattedText, start, end, 'select');
-                adminInput.focus(); 
+                // Execute the visual formatting command directly on the highlighted text
+                if (cmd === 'hiliteColor') {
+                    // Fallback for different browsers (Chrome uses hiliteColor, Firefox uses backColor)
+                    document.execCommand('hiliteColor', false, val) || document.execCommand('backColor', false, val);
+                } else {
+                    document.execCommand(cmd, false, val);
+                }
+                
+                // If it's a link, try to force it to open in a new tab
+                if (cmd === 'createLink') {
+                    const sel = window.getSelection();
+                    if(sel.rangeCount > 0) {
+                        const linkNode = sel.focusNode.parentNode;
+                        if(linkNode && linkNode.tagName === 'A') {
+                            linkNode.setAttribute('target', '_blank');
+                        }
+                    }
+                }
             });
         });
     }

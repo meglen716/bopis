@@ -83,33 +83,32 @@
                 <!-- The Secret Trigger & Notification Toggle -->
                 <div class="board-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                     <div id="secret-trigger" class="board-header" style="cursor: pointer; margin-bottom: 0;">📢 LATEST ANNOUNCEMENT</div>
-                    
-                    <!-- NEW: Toggle Switch Container (Uncommented and Active) -->
-                    <div class="notif-toggle-container" title="Enable Desktop Alerts">
-                        <span class="notif-label">Alerts</span>
-                        <label class="switch">
-                            <input type="checkbox" id="notif-toggle">
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
                 </div>
                 <p id="announcement-text">No active announcements.</p>
 
                 <div id="announcement-timestamp" class="announcement-timestamp"></div>
                 
                 <!-- HIDDEN ADMIN CONTROLS -->
+                <div id="login-panel" class="hidden-admin">
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.25rem;">
+                        <input type="password" id="admin-pin-input" placeholder="Enter Admin ID" autocomplete="off" style="flex: 1; margin-bottom: 0; background-color: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem;">
+                        <button id="admin-login-btn" class="calc-btn" style="padding: 0.5rem 1rem;">Access</button>
+                    </div>
+                    <p id="login-error" style="color: var(--danger-color); font-size: 0.75rem; display: none; margin: 0; font-weight: bold;">ACCESS DENIED</p>
+                </div>
+                
                 <div id="admin-panel" class="hidden-admin">
                     
-                    <!-- NEW: Unified Email-Style Editor -->
                     <div class="editor-container">
                         <div class="format-toolbar">
-                            <button type="button" class="format-btn" data-tag="b">Bold</button>
-                            <button type="button" class="format-btn" data-tag="i">Italic</button>
-                            <button type="button" class="format-btn" data-tag="u">Underline</button>
-                            <button type="button" class="format-btn" data-tag="mark">Highlight</button>
-                            <button type="button" class="format-btn" data-tag="a">Link</button>
+                            <button type="button" class="format-btn" data-cmd="bold">Bold</button>
+                            <button type="button" class="format-btn" data-cmd="italic">Italic</button>
+                            <button type="button" class="format-btn" data-cmd="underline">Underline</button>
+                            <button type="button" class="format-btn" data-cmd="hiliteColor" data-val="#ffea00">Highlight</button>
+                            <button type="button" class="format-btn" data-cmd="createLink">Link</button>
                         </div>
-                        <textarea id="admin-input" placeholder="Type your broadcast here..."></textarea>
+                        
+                        <div id="admin-input" contenteditable="true" data-placeholder="Type your broadcast here..."></div>
                     </div>
 
                     <div class="admin-actions">
