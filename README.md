@@ -20,15 +20,6 @@ The project is built using vanilla HTML5, CSS3, and ES6+ JavaScript, utilizing "
 * `data.js` - Static data storage (houses the 50-state U.S. array).
 * `script.js` - Main frontend logic for the dashboard utilities.
 
-## Deployment & Setup
-
-The BOpis dashboard is purely frontend and can be hosted completely free on GitHub Pages.
-
-1. Upload `index.html`, `styles.css`, `script.js`, and `data.js` to your GitHub repository.
-2. Navigate to your repository **Settings** > **Pages**.
-3. Select the `main` branch as the source and click **Save**.
-4. Your BOpis Command Center is now live on the web.
-
 ## Developer
 
 Created by Meglen | May 2026
