@@ -1,24 +1,53 @@
+// ==========================================
+// BOPIS COMMAND CENTER - MAIN LOGIC
+// ==========================================
+
 // --- Typewriter Header Animation ---
 const typewriterElement = document.getElementById('typewriter-header');
 if (typewriterElement) {
-    const textToType = "back opis";
-    
-    function playTypewriter() {
+    let typingTimeout = null;
+
+    // We make this a global function so chat.js can trigger it instantly!
+    window.updateTypewriter = function() {
+        // 1. Determine the time of day
+        const hour = new Date().getHours();
+        let greeting = "good evening";
+        if (hour >= 5 && hour < 12) greeting = "good morning";
+        else if (hour >= 12 && hour < 17) greeting = "good afternoon";
+
+        // 2. Check if a user is logged in
+        let newTextToType = "back opis";
+        const session = localStorage.getItem('bopis_chat_session');
+        
+        if (session) {
+            try {
+                const user = JSON.parse(session);
+                if (user && user.nickname) {
+                    // Converts name to lowercase to match the terminal aesthetic
+                    newTextToType = `${greeting} ${user.nickname.toLowerCase()}`;
+                }
+            } catch(e) {
+                console.error("Could not read session for typewriter.");
+            }
+        }
+
+        // 3. Play the typewriter effect
+        clearTimeout(typingTimeout); // Stops any overlapping animations
         typewriterElement.innerHTML = ""; 
         let i = 0;
         
         function typeChar() {
-            if (i < textToType.length) {
-                typewriterElement.innerHTML += textToType.charAt(i);
+            if (i < newTextToType.length) {
+                typewriterElement.innerHTML += newTextToType.charAt(i);
                 i++;
-                setTimeout(typeChar, 150); 
+                typingTimeout = setTimeout(typeChar, 150); 
             }
         }
         typeChar();
-    }
+    };
 
-    playTypewriter(); 
-    setInterval(playTypewriter, 60000); 
+    window.updateTypewriter(); 
+    setInterval(window.updateTypewriter, 60000); // Refreshes every minute
 }
 
 // --- Dark Mode Toggle ---
@@ -808,143 +837,112 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
     const adminLoginBtn = document.getElementById('admin-login-btn');
     const loginError = document.getElementById('login-error');
 
-    // 2. Secret Admin Trigger (5-Tap)
-    let taps = 0;
-    let tapTimer;
-    if (secretTrigger) {
-        secretTrigger.addEventListener('click', () => {
-            taps++;
-            clearTimeout(tapTimer);
-            if (taps >= 5) {
-                if (adminPanel && loginPanel) {
-                    // If the editor is already open, 5-tapping closes it.
-                    if (adminPanel.classList.contains('active')) {
-                        adminPanel.classList.remove('active');
-                    } else {
-                        // Otherwise, open the Login Panel and lock it down
-                        loginPanel.classList.toggle('active');
-                        if (loginPanel.classList.contains('active')) {
-                            adminPinInput.value = '';
-                            adminPinInput.focus();
-                            loginError.style.display = 'none';
-                            adminPinInput.classList.remove('shake-error');
-                        }
-                    }
-                }
-                taps = 0;
-            } else {
-                tapTimer = setTimeout(() => taps = 0, 1500);
+    // 2. Master Admin Edit Trigger (Bypasses PIN)
+    const masterEditBtn = document.getElementById('master-edit-btn');
+    if (masterEditBtn && adminPanel) {
+        masterEditBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            adminPanel.classList.toggle('active');
+            
+            // Auto-populate the editor with the current live announcement
+            if (adminPanel.classList.contains('active') && adminInput) {
+                adminInput.innerHTML = currentMessage || "";
             }
         });
     }
 
-    // --- Firebase PIN Validation ---
-    function verifyAdminAccess() {
-        if (!adminPinInput) return;
-        const enteredPin = adminPinInput.value.trim();
+    // 3. Admin Actions (Broadcast & Delete)
+    const adminSubmit = document.getElementById('admin-submit');
+    const deleteBroadcastBtn = document.getElementById('delete-broadcast-btn'); 
 
-        // Securely read the PIN from the Firebase Database
-        db.ref('admin/pin').once('value').then((snapshot) => {
-            let dbPin = snapshot.val();
-
-            // Authentication Check
-            if (enteredPin === dbPin.toString()) {
-                // SUCCESS: Hide login, Show editor, Load message
-                loginPanel.classList.remove('active');
-                adminPanel.classList.add('active');
-                if (adminInput) adminInput.innerHTML = currentMessage || "";
-            } else {
-                // FAILED: Trigger red shake animation
-                adminPinInput.classList.add('shake-error');
-                loginError.style.display = 'block';
-                adminPinInput.value = ''; // Wipe the wrong guess
-                
-                // Remove the animation class so it can be triggered again
-                setTimeout(() => adminPinInput.classList.remove('shake-error'), 300);
-            }
-        }).catch(err => {
-            console.error("Firebase Auth Error: ", err);
-        });
-    }
-
-    // Trigger verification on Button Click OR pressing the 'Enter' key
-    if (adminLoginBtn) {
-        adminLoginBtn.addEventListener('click', verifyAdminAccess);
-    }
-    if (adminPinInput) {
-        adminPinInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') verifyAdminAccess();
-        });
-    }
-
-    // 3. Admin Actions (Broadcast & Cancel)
-    if (adminBroadcastBtn) {
-        adminBroadcastBtn.addEventListener('click', () => {
-            if (!adminInput) return;
+    // Push new announcement
+    if (adminSubmit && adminInput) {
+        adminSubmit.addEventListener('click', () => {
             const val = adminInput.innerHTML.trim();
-            if (val) {
-                const now = new Date();
-                const timeString = now.toLocaleString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric', 
-                    year: 'numeric', 
-                    hour: 'numeric', 
-                    minute: '2-digit', 
-                    hour12: true 
-                });
+            if (!val) return; 
+
+            db.ref('announcement').set({
+                message: val,
+                timestamp: new Date().toLocaleString([], {dateStyle: 'medium', timeStyle: 'short'})
+            })
+              .then(() => {
+                  adminInput.innerHTML = ''; 
+                  adminPanel.classList.remove('active'); 
+              })
+              .catch(err => console.error("Firebase write error:", err));
+        });
+    }
+
+    // Delete current announcement entirely
+    if (deleteBroadcastBtn) {
+        deleteBroadcastBtn.addEventListener('click', () => {
+            if (confirm("Are you sure you want to completely delete the active broadcast?")) {
                 
                 db.ref('announcement').set({
-                    message: val,
-                    timestamp: timeString
-                });
-                
-                adminInput.innerHTML = '';
-                if (adminPanel) adminPanel.classList.remove('active');
+                    message: "",
+                    timestamp: ""
+                })
+                  .then(() => {
+                      adminInput.innerHTML = '';
+                      adminPanel.classList.remove('active'); // Slide the editor closed
+                  })
+                  .catch(err => console.error("Firebase delete error:", err));
             }
         });
     }
 
-    if (adminCancelBtn) {
-        adminCancelBtn.addEventListener('click', () => {
-            if (adminInput) adminInput.innerHTML = ''; 
-            if (adminPanel) adminPanel.classList.remove('active'); 
-        });
-    }
-
-    // 4. Formatting Toolbar Logic (Real-Time Visuals)
+    // 4. Formatting Toolbar Logic (Real-Time Visuals & Custom Links)
     const formatBtns = document.querySelectorAll('.format-btn');
     if (formatBtns && adminInput) {
         formatBtns.forEach(btn => {
-            // We use 'mousedown' and 'preventDefault' so the text box doesn't lose focus when you click a button
             btn.addEventListener('mousedown', (e) => {
-                e.preventDefault(); 
+                e.preventDefault(); // Prevents losing focus on the text box
                 
                 const cmd = btn.dataset.cmd;
                 let val = btn.dataset.val || null;
 
+                // --- NEW CUSTOM LINK LOGIC ---
                 if (cmd === 'createLink') {
-                    const url = prompt("Enter the web link (URL):", "https://");
+                    // 1. Ask for the destination URL
+                    const url = prompt("Enter the destination web link (URL):", "https://");
                     if (!url) return; 
-                    val = url;
+                    
+                    // 2. See if the user already highlighted text
+                    const selectedText = window.getSelection().toString();
+                    
+                    // 3. Ask for the Display Text (Alt Text)
+                    const displayText = prompt("Enter the text you want people to see:", selectedText || "Click Here");
+                    if (!displayText) return; // Cancel if they leave it blank
+
+                    // 4. Inject the perfectly formatted HTML directly into the editor
+                    const linkHTML = `<a href="${url}" target="_blank">${displayText}</a>`;
+                    document.execCommand('insertHTML', false, linkHTML);
+                    
+                    return; // Stop here, because we already injected the HTML
                 }
 
-                // Execute the visual formatting command directly on the highlighted text
+                // --- CUSTOM HIGHLIGHT LOGIC ---
                 if (cmd === 'hiliteColor') {
-                    // Fallback for different browsers (Chrome uses hiliteColor, Firefox uses backColor)
-                    document.execCommand('hiliteColor', false, val) || document.execCommand('backColor', false, val);
-                } else {
-                    document.execCommand(cmd, false, val);
-                }
-                
-                // If it's a link, try to force it to open in a new tab
-                if (cmd === 'createLink') {
-                    const sel = window.getSelection();
-                    if(sel.rangeCount > 0) {
-                        const linkNode = sel.focusNode.parentNode;
-                        if(linkNode && linkNode.tagName === 'A') {
-                            linkNode.setAttribute('target', '_blank');
-                        }
+                    const selection = window.getSelection();
+                    
+                    // Check if the user actually highlighted some text
+                    if (selection.rangeCount > 0 && !selection.isCollapsed) {
+                        const range = selection.getRangeAt(0);
+                        const span = document.createElement('span');
+                        
+                        // Injects your custom CSS class!
+                        span.className = 'theme-highlight'; 
+                        
+                        // Wraps the text (preserves any bold/italic they already applied)
+                        span.appendChild(range.extractContents());
+                        range.insertNode(span);
+                        
+                        // Clears the selection so they can keep typing normally
+                        window.getSelection().removeAllRanges();
                     }
+                } else {
+                    // Execute standard visual formatting commands (Bold, Italic)
+                    document.execCommand(cmd, false, val);
                 }
             });
         });
