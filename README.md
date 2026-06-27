@@ -1,7 +1,3 @@
-Here is the updated, professional ReadMe reflecting all of the recent v2.5.0 architecture and feature additions.
-
----
-
 # BOpis Dashboard v2.5.0
 
 **BOpis** is a sleek, modular, and highly optimized productivity dashboard designed specifically for back-office operations. It combines essential time-management, productivity utilities, and real-time secure communications into a fast, responsive, vanilla JavaScript interface.
