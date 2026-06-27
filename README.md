@@ -27,4 +27,4 @@ The project is built using vanilla HTML5, CSS3, and ES6+ JavaScript, utilizing "
 
 ## Developer
 
-Created by Meglen | June 2026
+Created by Meglen | May 2026
