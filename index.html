@@ -8,7 +8,7 @@
 </head>
 <body>
     <header>
-        <h3 id="typewriter-header"></h3> </h3>
+        <h3 id="typewriter-header"></h3></h3>
         <div class="header-controls">
             <div class="toggle-group">
                 <span>Stay Awake</span>
@@ -80,22 +80,13 @@
 
             <!-- Embedded Admin Bulletin Board -->
             <div id="announcement-board" class="announcement-board">
-                <!-- The Secret Trigger & Notification Toggle -->
-                <div class="board-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <div id="secret-trigger" class="board-header" style="cursor: pointer; margin-bottom: 0;">📢 LATEST ANNOUNCEMENT</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h6 style="margin: 0;">📢 LATEST ANNOUNCEMENT</h6>
+                    <button id="master-edit-btn" class="text-btn">Edit</button>
                 </div>
                 <p id="announcement-text">No active announcements.</p>
 
                 <div id="announcement-timestamp" class="announcement-timestamp"></div>
-                
-                <!-- HIDDEN ADMIN CONTROLS -->
-                <div id="login-panel" class="hidden-admin">
-                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.25rem;">
-                        <input type="password" id="admin-pin-input" placeholder="Enter Admin ID" autocomplete="off" style="flex: 1; margin-bottom: 0; background-color: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem;">
-                        <button id="admin-login-btn" class="calc-btn" style="padding: 0.5rem 1rem;">Access</button>
-                    </div>
-                    <p id="login-error" style="color: var(--danger-color); font-size: 0.75rem; display: none; margin: 0; font-weight: bold;">ACCESS DENIED</p>
-                </div>
                 
                 <div id="admin-panel" class="hidden-admin">
                     
@@ -111,9 +102,10 @@
                         <div id="admin-input" contenteditable="true" data-placeholder="Type your broadcast here..."></div>
                     </div>
 
-                    <div class="admin-actions">
-                        <button id="admin-broadcast-btn" class="calc-btn">Broadcast</button>
-                        <button id="admin-cancel-btn" class="calc-btn outline-btn" style="margin-bottom: 0;">Cancel Edit</button>
+                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+                        <button id="delete-broadcast-btn" class="calc-btn danger-outline-btn">Delete Broadcast</button>
+                        
+                        <button id="admin-submit" class="calc-btn" style="background-color: var(--primary-color); color: white; border: none;">Push Broadcast</button>
                     </div>
                 </div>
             </div>
@@ -220,19 +212,120 @@
                 <div id="note-counter" class="note-counter">Words: 0 | Characters: 0 / 2000</div>
             </div>
         </section>
+
+        <!-- LIVE COMMS -->
+        <div id="chat-panel" class="tab-panel">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">Live Comms</h2>
+                
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <button id="chat-user-gear" class="calc-btn outline-btn" style="display: none; width: auto !important; padding: 0.3rem 0.6rem !important; font-size: 0.75rem !important; margin-bottom: 0;">Profile</button>
+                    
+                    <button id="chat-admin-gear" class="calc-btn outline-btn" style="width: auto !important; padding: 0.3rem 0.6rem !important; font-size: 0.75rem !important; margin-bottom: 0;">
+                        Admin Settings <span id="admin-main-badge" style="display: none; color: var(--danger-color); font-weight: bold; margin-left: 2px;">(0)</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="user-settings-container" class="chat-state-container" style="display: none; border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; background-color: var(--bg-color); margin-bottom: 1.5rem;">
+                <h3 style="margin-bottom: 1rem;">Update Profile</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <input type="text" id="new-nickname-input" placeholder="New Nickname" autocomplete="off">
+                    
+                    <input type="password" id="new-password-input" placeholder="New Password (leave blank to keep current)" autocomplete="off">
+                    
+                    <button id="save-profile-btn" class="calc-btn" style="width: 100%; margin-top: 0.5rem;">Save Changes</button>
+
+                    <button id="chat-logout-btn" class="calc-btn outline-btn danger-outline-btn" style="margin-top: 1rem;">Log Out</button>
+                </div>
+            </div>
+
+            <div id="admin-master-container" class="chat-state-container" style="display: none; border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; background-color: var(--bg-color); margin-bottom: 1.5rem;">
+                
+                <div id="chat-admin-login">
+                    <h3 style="margin-bottom: 1rem;">Comms Override</h3>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="password" id="chat-admin-pin" placeholder="Enter Master PIN" style="flex: 1; margin: 0;">
+                        <button id="chat-admin-pin-btn" class="calc-btn">Unlock</button>
+                    </div>
+                    <p id="chat-admin-error" style="color: var(--danger-color); font-size: 0.75rem; display: none; margin-top: 0.5rem; font-weight: bold;">ACCESS DENIED</p>
+                </div>
+
+                <div id="chat-admin-dashboard" style="display: none;">
+                    <div class="admin-collapse-group">
+                        <button class="collapse-btn" onclick="toggleCollapse('pending-collapse')">
+                            Pending Requests <span id="pending-count-badge" class="count-badge">0</span>
+                        </button>
+                        <div id="pending-collapse" class="collapse-content open">
+                            <ul id="pending-users-list" class="user-list">
+                                <li class="empty-list">No pending requests.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+
+                    <div class="admin-collapse-group" style="margin-bottom: 0;">
+                        <button class="collapse-btn" onclick="toggleCollapse('active-collapse')">
+                            All Members <span id="active-count-badge" class="count-badge">0</span>
+                        </button>
+                        <div id="active-collapse" class="collapse-content">
+                            <ul id="active-users-list" class="user-list">
+                                <li class="empty-list">No active members yet.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px dashed var(--border-color);">
+                        <h4 style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.75rem; text-transform: uppercase;">Master Server Controls</h4>
+                        <div style="display: flex; gap: 1rem;">
+                            <button id="admin-export-btn" class="calc-btn outline-btn" style="margin: 0; flex: 1;">Export Log (.txt)</button>
+                            <button id="admin-nuke-btn" class="calc-btn danger-btn" style="margin: 0; flex: 1;">Wipe History</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="chat-auth-view" class="chat-state-container">
+                <div class="auth-card" style="margin-top: 0;">
+                    <h3 id="auth-title" style="margin-bottom: 1rem; text-align: center;">Member Login</h3>
+                    <input type="text" id="chat-username" placeholder="Nickname" autocomplete="off">
+                    <input type="password" id="chat-password" placeholder="Password" autocomplete="off" style="margin-top: 0.75rem;">
+                    
+                    <button id="chat-auth-btn" class="calc-btn" style="width: 100%; margin-top: 1rem;">Login</button>
+                    
+                    <div style="text-align: center; margin-top: 1rem; font-size: 0.85rem;">
+                        <span id="auth-switch-text" style="color: var(--text-muted);">Need access? </span>
+                        <button id="auth-toggle-mode" class="text-btn" style="color: var(--primary-color);">Register here</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chat-waiting-view" class="chat-state-container" style="display: none;">
+                <div class="waiting-card" style="margin-top: 0;">
+                    <div class="spinner"></div>
+                    <h3 style="margin-top: 1rem;">Awaiting Clearance</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Your account is pending admin approval. Please hold.</p>
+                </div>
+            </div>
+
+            <div id="chat-room-view" class="chat-state-container" style="display: none; flex-direction: column; height: 450px;">
+                <div id="chat-messages" class="chat-messages-area">
+                    <div class="sys-msg">Welcome to secure comms.</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="Type message..." autocomplete="off">
+                    <button id="chat-send-btn" class="calc-btn" style="padding: 0 1.5rem !important;">Send</button>
+                </div>
+            </div>
+
+        </div>
     </main>
 
-    <!-- Stealth Audio Engine -->
-    <audio id="stealth-audio" autoplay></audio>
-    
-    <!-- Hidden Hacker Terminal -->
-    <div id="command-terminal" class="hidden-terminal">
-        <span class="prompt-arrow">></span>
-        <input type="text" id="command-input" placeholder="Enter server command" autocomplete="off">
-    </div>
-
     <footer class="app-footer">
-        BOpis v2.4.0 | &copy; 2026 Meglen
+        BOpis | &copy; 2026 v2.5.0 | <span id="secret-comms-trigger" class="boring-version-link">Live Comms</span>
     </footer>
 
     <!-- Firebase Libraries -->
@@ -241,6 +334,6 @@
 
     <script src="js/data.js"></script>
     <script src="js/script.js"></script>
-    <!-- <script src="js/stealth.js"></script> -->
+    <script src="js/chat.js"></script>
 </body>
 </html>

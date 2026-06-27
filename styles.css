@@ -133,6 +133,34 @@ button:disabled { background-color: var(--text-muted) !important; cursor: not-al
     line-height: 1.4;
 }
 
+.theme-highlight {
+    background-color: yellow;
+    color: #121212; /* Locks the text to dark */
+    padding: 0 2px;
+    border-radius: 3px;
+}
+
+/* Dark Mode Override */
+[data-theme="dark"] .theme-highlight {
+    background-color: rgba(187, 134, 252, 0.4); /* Translucent Purple */
+    color: #ffffff; /* Crisp white text */
+}
+
+/* =========================================
+   Adaptive Danger Outline Button
+========================================= */
+.danger-outline-btn {
+    background-color: transparent !important;
+    color: #ff4757 !important; /* Bright red text */
+    border: 1px solid #ff4757 !important; /* Bright red border */
+    transition: all 0.2s ease-in-out;
+}
+
+.danger-outline-btn:hover {
+    background-color: #ff4757 !important; /* Fills red on hover */
+    color: white !important; /* Turns text white on hover */
+}
+
 /* Announcement Pulse Animation */
 @keyframes urgentPulse {
     0% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7); border-color: var(--primary-color); }
@@ -417,4 +445,182 @@ button:disabled { background-color: var(--text-muted) !important; cursor: not-al
     animation: shakeError 0.3s ease-in-out;
     border-color: var(--danger-color) !important;
     color: var(--danger-color) !important;
+}
+
+/* =========================================
+   TAB 5: LIVE COMMS (CHAT SYSTEM)
+   Master Stylesheet
+========================================= */
+
+/* --- 1. Layout & Containers --- */
+.chat-state-container { width: 100%; animation: fadeIn 0.3s ease-in-out; }
+.auth-card, .waiting-card { max-width: 350px; margin: 2rem auto; padding: 2rem; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--bg-color); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.auth-card input { width: 100%; }
+.waiting-card { text-align: center; }
+
+.spinner { width: 40px; height: 40px; border: 4px solid var(--border-color); border-top: 4px solid var(--primary-color); border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* --- 2. Chat Room UI --- */
+.chat-messages-area { flex: 1; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px 8px 0 0; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; min-height: 300px; }
+.chat-input-area { display: flex; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px; overflow: hidden; }
+.chat-input-area input { flex: 1; border: none; border-radius: 0; background-color: var(--surface-color); }
+.chat-input-area input:focus { box-shadow: none; background-color: var(--bg-color); }
+.chat-input-area button { border-radius: 0; }
+
+.chat-msg {
+    position: relative; /* CRITICAL: Anchors the 3-dots to the bubble */
+    max-width: 80%;
+    padding: 0.5rem 28px 0.5rem 0.75rem; /* 28px padding on the right makes room for the dots! */
+    border-radius: 8px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+.msg-other { background-color: var(--surface-color); border: 1px solid var(--border-color); align-self: flex-start; border-bottom-left-radius: 2px; }
+.msg-me { background-color: var(--primary-color); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+.msg-sender { font-size: 0.7rem; font-weight: bold; margin-bottom: 0.25rem; opacity: 0.8; }
+.sys-msg { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin: 0.5rem 0; font-family: monospace; }
+
+/* --- 3. Admin Dashboard & Identity --- */
+.admin-collapse-group { margin-bottom: 0.75rem; }
+.collapse-btn { width: 100%; text-align: left; background: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 0.75rem 1rem; font-size: 0.9rem; font-weight: bold; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+.collapse-btn:hover { background: var(--tab-hover); }
+.collapse-content { display: none; padding: 0.5rem 0; }
+.collapse-content.open { display: block; animation: fadeIn 0.2s ease-in-out; }
+.count-badge { background-color: var(--primary-color); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; }
+.user-list { list-style: none; padding: 0; margin: 0; }
+.user-list li { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border-bottom: 1px solid var(--border-color); }
+.user-list li:last-child { border-bottom: none; }
+.empty-list { color: var(--text-muted); font-style: italic; font-size: 0.9rem; justify-content: center !important; }
+.admin-action-btns { display: flex; gap: 0.5rem; }
+.btn-sm { padding: 0.25rem 0.5rem !important; font-size: 0.75rem !important; }
+
+#chat-admin-gear { display: none; }
+
+.admin-chat-badge { font-size: 0.6rem; border: 1px solid var(--primary-color); color: var(--primary-color); background-color: transparent; padding: 1px 5px; border-radius: 4px; margin-left: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; vertical-align: middle; }
+.msg-me .admin-chat-badge { border-color: rgba(255, 255, 255, 0.6); color: white; }
+
+/* Forces the badge to use visible colors when the blue background is removed by a deletion */
+.dull-bubble.msg-me .admin-chat-badge {
+    border-color: var(--text-muted) !important;
+    color: var(--text-muted) !important;
+}
+
+/* --- 4. The 3-Dot Menu & Tooltip System --- */
+.msg-menu-btn {
+    display: none; /* Hidden by default */
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    color: inherit;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 4px;
+    opacity: 0.5;
+    user-select: none;
+    outline: none; /* Removes the focus ring */
+}
+.msg-menu-btn:hover, .msg-menu-btn:focus-within { opacity: 1; }
+
+/* Tooltip Background Container */
+.menu-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: var(--danger-color); /* The Red Background you asked for */
+    padding: 8px 12px;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    flex-direction: column;
+    gap: 10px;
+    z-index: 50;
+}
+.msg-menu-btn:focus-within .menu-dropdown { 
+    display: flex; 
+    animation: fadeIn 0.15s ease-in-out;
+}
+
+/* White Underlined Text Links */
+.action-msg-link {
+    color: white !important;
+    text-decoration: underline;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.action-msg-link:hover { opacity: 0.8; }
+
+/* --- 5. Action Visibility Logic --- */
+/* Show 3-dots for your own messages or for all messages if you are Admin */
+.msg-me .msg-menu-btn { display: block; }
+.admin-mode-active .chat-msg .msg-menu-btn { display: block !important; }
+/* Increased specificity forces the dots to hide for BOTH users and Admins once deleted */
+.chat-msg.dull-bubble .msg-menu-btn,
+.admin-mode-active .chat-msg.dull-bubble .msg-menu-btn { 
+    display: none !important; 
+}
+
+/* Determine which link shows up inside the tooltip */
+.void-link { display: none; }
+.msg-me .void-link { display: block; }
+.admin-mode-active .void-link { display: none !important; } /* Admins don't need void */
+.void-requested-bubble .void-link { display: none !important; }
+
+.delete-link { display: none; }
+.admin-mode-active .delete-link { display: block; }
+
+.void-pending-badge { font-size: 0.6rem; margin-left: 6px; color: #ff9f43; font-style: italic; font-weight: bold; }
+
+/* --- 6. Soft Delete Visuals --- */
+.admin-mode-active .void-requested-bubble { border: 2px dashed #ff9f43 !important; background-color: rgba(255, 159, 67, 0.1) !important; }
+.dull-bubble { background-color: transparent !important; border: 1px dashed var(--border-color) !important; box-shadow: none !important; color: var(--text-color) !important; }
+.dull-bubble .msg-sender { color: var(--text-muted) !important; }
+
+.deleted-text-notice { display: none !important; font-style: italic; color: var(--text-muted) !important; opacity: 0.8; }
+.is-deleted .original-text { display: none !important; }
+.is-deleted .deleted-text-notice { display: block !important; }
+
+.admin-mode-active .is-deleted .original-text { display: block !important; text-decoration: line-through; color: var(--danger-color) !important; opacity: 0.8; }
+.admin-mode-active .is-deleted .deleted-text-notice { display: none !important; }
+
+/* =========================================
+   Global Master Admin State
+========================================= */
+#master-edit-btn {
+    display: none; /* Hidden from regular users */
+    color: var(--primary-color) !important; /* FIX: Uses your theme's link color instead of white */
+    text-decoration: underline;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+#master-edit-btn:hover {
+    opacity: 0.8;
+}
+
+/* When the Global Admin logs in, reveal the Edit button */
+body.master-admin-active #master-edit-btn {
+    display: inline-block;
+}
+
+/* =========================================
+   The Ghost Decoy (Hidden Trigger)
+========================================= */
+.boring-version-link {
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text-muted); /* Blends in with the footer text */
+    transition: color 0.2s ease;
+}
+
+.boring-version-link:hover {
+    color: var(--text-color); /* Subtle indicator only when hovered */
 }
