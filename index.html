@@ -4,11 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BOpis</title>
-    <link rel="stylesheet" href="styles.css">
+    
+    <!-- PDF Rendering & Editing Engines -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <header>
-        <h3 id="typewriter-header"></h3></h3>
+        <h3 id="typewriter-header"></h3>
         <div class="header-controls">
             <div class="toggle-group">
                 <span>Stay Awake</span>
@@ -36,9 +42,10 @@
         <nav class="tabs" id="nav-tabs">
             <button class="tab-btn active" data-target="alarm">Alarm Clock</button>
             <button class="tab-btn" data-target="timezones">U.S Time Zones</button>
-            <button class="tab-btn" data-target="webcam">Floating Webcam</button>
+            <button class="tab-btn" data-target="pdf-panel">PDF Editor</button>
             <button class="tab-btn" data-target="calculator">Calculator</button>
             <button class="tab-btn" data-target="notes">Quick Notes</button>
+
         </nav>
     </div>
 
@@ -47,7 +54,6 @@
         <section id="alarm" class="tab-panel active">
             <h2>Alarm Clock</h2>
             <div class="tool-content">
-                
                 <div class="digital-clock-container">
                     <div id="digital-time">--:--:--</div>
                     <div id="digital-date">---</div>
@@ -55,7 +61,6 @@
 
                 <div class="alarm-controls">
                     <input type="time" id="alarm-time">
-                    
                     <select id="alarm-ringtone" class="minimal-select">
                         <option value="beep">Classic Beep</option>
                         <option value="chime">Gentle Chime</option>
@@ -89,7 +94,6 @@
                 <div id="announcement-timestamp" class="announcement-timestamp"></div>
                 
                 <div id="admin-panel" class="hidden-admin">
-                    
                     <div class="editor-container">
                         <div class="format-toolbar">
                             <button type="button" class="format-btn" data-cmd="bold">Bold</button>
@@ -98,13 +102,11 @@
                             <button type="button" class="format-btn" data-cmd="hiliteColor" data-val="#ffea00">Highlight</button>
                             <button type="button" class="format-btn" data-cmd="createLink">Link</button>
                         </div>
-                        
                         <div id="admin-input" contenteditable="true" data-placeholder="Type your broadcast here..."></div>
                     </div>
 
                     <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
                         <button id="delete-broadcast-btn" class="calc-btn danger-outline-btn">Delete Broadcast</button>
-                        
                         <button id="admin-submit" class="calc-btn" style="background-color: var(--primary-color); color: white; border: none;">Push Broadcast</button>
                     </div>
                 </div>
@@ -132,19 +134,6 @@
         </section>
 
         <!-- 3. Floating Webcam -->
-        <section id="webcam" class="tab-panel">
-            <h2>Floating Webcam</h2>
-            <div class="tool-content">
-                <p>Start the webcam, then click "Pop Out" to make it float anywhere on your screen.</p>
-                <video id="webcam-video" autoplay playsinline muted></video>
-                <div class="btn-group">
-                    <button id="start-webcam-btn">Start Webcam</button>
-                    <button id="stop-webcam-btn" class="danger-btn" disabled>Turn Off Camera</button>
-                    <button id="pip-btn" disabled>Pop Out (Picture-in-Picture)</button>
-                    <button id="capture-btn" disabled>Capture-to-Paste</button>
-                </div>
-            </div>
-        </section>
 
         <!-- 4. Calculator -->
         <section id="calculator" class="tab-panel">
@@ -196,7 +185,6 @@
 
         <!-- 5. Quick Notes -->
         <section id="notes" class="tab-panel">
-            <!-- NEW: Hidden Drag Handle for Floating Mode -->
             <div id="notes-drag-handle" class="drag-handle" style="display: none;">
                 <span>Quick Notes (Floating)</span>
                 <button id="dock-notes-btn" class="text-btn" style="color: white;">Dock</button>
@@ -213,15 +201,143 @@
             </div>
         </section>
 
-        <!-- LIVE COMMS -->
-        <div id="chat-panel" class="tab-panel">
+        <!-- 6. PDF EDITOR PANEL -->
+        <section id="pdf-panel" class="tab-panel">
+            <h2>PDF Editor & Signer</h2>
             
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h2 style="margin: 0;">Live Comms</h2>
+            <!-- Top Controls Bar -->
+            <div class="pdf-toolbar" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center;">
+                <input type="file" id="pdf-file-input" accept="application/pdf" style="display: none;">
+                <button id="pdf-upload-btn" class="calc-btn outline-btn" style="width: auto; margin: 0;">Open PDF</button>
                 
+                <div id="pdf-tools" style="display: none; gap: 0.5rem; align-items: center; flex-wrap: wrap; flex: 1;">
+                    
+                    <!-- Dynamic Brush Settings -->
+                    <div id="pdf-draw-props" style="display: none; gap: 0.25rem; align-items: center; border-left: 1px solid var(--border-color); padding-left: 0.5rem; margin-left: 0.25rem;">
+                        <select id="pdf-brush-color" class="minimal-select" style="padding: 0.25rem 1.5rem 0.25rem 0.5rem; font-size: 0.8rem; margin: 0; background-color: var(--surface-color);">
+                            <option value="#000000">Black</option>
+                            <option value="#0d6efd">Blue</option>
+                            <option value="#dc3545">Red</option>
+                            <option value="#ffc107">Yellow</option>
+                            <option value="#198754">Green</option>
+                        </select>
+                        <select id="pdf-brush-size" class="minimal-select" style="padding: 0.25rem 1.5rem 0.25rem 0.5rem; font-size: 0.8rem; margin: 0; background-color: var(--surface-color);">
+                            <option value="1.5">Fine</option>
+                            <option value="3" selected>Medium</option>
+                            <option value="6">Thick</option>
+                        </select>
+                    </div>
+
+                    <!-- Dynamic Text Settings -->
+                    <div id="pdf-text-props" style="display: none; gap: 0.25rem; align-items: center; border-left: 1px solid var(--border-color); padding-left: 0.5rem; margin-left: 0.25rem;">
+                        <select id="pdf-text-color" class="minimal-select" style="padding: 0.25rem 1.5rem 0.25rem 0.5rem; font-size: 0.8rem; margin: 0; background-color: var(--surface-color);">
+                            <option value="#000000">Black</option>
+                            <option value="#0d6efd">Blue</option>
+                            <option value="#dc3545">Red</option>
+                            <option value="#ffc107">Yellow</option>
+                            <option value="#198754">Green</option>
+                        </select>
+                        <select id="pdf-text-font" class="minimal-select" style="padding: 0.25rem 1.5rem 0.25rem 0.5rem; font-size: 0.8rem; margin: 0; background-color: var(--surface-color);">
+                            <option value="Arial">Arial</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Consolas">Consolas</option>
+                            <option value="Century Gothic">Century Gothic</option>
+                            <option value="sans-serif">Sans-Serif</option>
+                        </select>
+                        <select id="pdf-text-size" class="minimal-select" style="padding: 0.25rem 1.5rem 0.25rem 0.5rem; font-size: 0.8rem; margin: 0; background-color: var(--surface-color);">
+                            <option value="8">8</option><option value="10">10</option><option value="12">12</option>
+                            <option value="14">14</option><option value="16" selected>16</option><option value="18">18</option>
+                            <option value="20">20</option><option value="24">24</option><option value="36">36</option>
+                        </select>
+                    </div>
+
+                    <!-- Save Button (Pushed to the right using margin-left: auto) -->
+                    <div style="margin-left: auto;">
+                        <button id="pdf-save-btn" class="calc-btn" style="background-color: #28a745; color: #fff; margin: 0; padding: 0.35rem 0.85rem; font-size: 1.1rem;" title="Save & Download PDF">
+                            <i class="bi bi-download"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Viewer Workspace -->
+            <div id="pdf-workspace" style="position: relative; width: 100%; border: 1px solid var(--border-color); border-radius: 4px; height: 70vh; min-height: 500px; display: flex; background: var(--bg-color); overflow: hidden;">
+                
+                <!-- Sidebar -->
+                <div id="pdf-sidebar" class="pdf-sidebar">
+                    <button id="pdf-mode-draw" class="icon-tool-btn" title="Open Signature Pad">
+                        <i class="bi bi-pen" style="font-size: 1.25rem;"></i>
+                    </button>
+                    <button id="pdf-mode-text" class="icon-tool-btn" title="Add Text">
+                        <span style="font-size: 1.15rem; font-family: 'Times New Roman', Times, serif; font-weight: 900; letter-spacing: -0.5px;">Aa</span>
+                    </button>
+                    <div style="height: 1px; background: var(--border-color); margin: 0.25rem 0;"></div>
+                    <button id="pdf-clear-draw" class="icon-tool-btn danger-icon" title="Clear Page Annotations">
+                        <i class="bi bi-eraser" style="font-size: 1.25rem;"></i>
+                    </button>
+                    <button id="pdf-cancel-btn" class="icon-tool-btn" title="Discard PDF & Edits" style="margin-top: auto; background-color: var(--danger-color) !important; color: white !important; border: none;">
+                        <i class="bi bi-trash3" style="font-size: 1.25rem;"></i>
+                    </button>
+                </div>
+
+                <!-- Main Viewer Area (Flex Column) -->
+                <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+                    
+                    <!-- Scrollable Canvas Area -->
+                    <div id="pdf-scroll-area" style="flex: 1; overflow: auto; padding: 1rem; position: relative;">
+                        <p id="pdf-placeholder" style="color: var(--text-muted); text-align: center; margin-top: 5rem;">Upload a PDF file to begin editing.</p>
+                        
+                        <div id="pdf-stage" style="position: relative; display: none; margin: 0 auto; width: max-content;">
+                            <canvas id="pdf-render-canvas" style="display: block; border-radius: 2px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);"></canvas>
+                            <div id="pdf-floating-layer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: visible;"></div>
+                        </div>
+                    </div>
+
+                    <!-- NEW: Bottom Status Bar (Hidden until PDF loads) -->
+                    <div id="pdf-bottom-bar" style="display: none; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: var(--surface-color); border-top: 1px solid var(--border-color); z-index: 10;">
+                        
+                        <!-- Zoom Controls -->
+                        <div style="display: flex; gap: 0.25rem; align-items: center; background: var(--bg-color); padding: 0.25rem; border-radius: 4px; border: 1px solid var(--border-color);">
+                            <button id="pdf-zoom-out" class="text-btn" style="color: var(--text-color); padding: 0.25rem 0.5rem;" title="Zoom Out"><i class="bi bi-zoom-out"></i></button>
+                            <span id="pdf-zoom-val" style="font-size: 0.8rem; font-weight: bold; width: 45px; text-align: center; color: var(--text-color);">Fit</span>
+                            <button id="pdf-zoom-in" class="text-btn" style="color: var(--text-color); padding: 0.25rem 0.5rem;" title="Zoom In"><i class="bi bi-zoom-in"></i></button>
+                            <div style="width: 1px; height: 16px; background: var(--border-color); margin: 0 4px;"></div>
+                            <button id="pdf-zoom-fit" class="text-btn" style="color: var(--primary-color); padding: 0.25rem 0.5rem;" title="Fit to View"><i class="bi bi-arrows-angle-expand"></i></button>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div style="display: flex; gap: 0.25rem; align-items: center;">
+                            <button id="pdf-prev-page" class="calc-btn btn-sm" style="margin: 0;">&lt;</button>
+                            <span id="pdf-page-num" style="font-size: 0.85rem; font-weight: bold; color: var(--text-color); margin: 0 0.5rem;">Page 1 / 1</span>
+                            <button id="pdf-next-page" class="calc-btn btn-sm" style="margin: 0;">&gt;</button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Hidden Signature Pad Modal (Remains Unchanged) -->
+                <div id="sig-modal-overlay" class="sig-modal-overlay" style="display: none;">
+                    <div class="sig-modal-box">
+                        <h3 style="margin-bottom: 0.5rem;">Draw Your Signature</h3>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Use the toolbar at the top to change ink color and thickness.</p>
+                        <canvas id="sig-pad-canvas" width="500" height="200" style="background: #fff; border: 2px dashed var(--border-color); cursor: crosshair; border-radius: 4px; display: block;"></canvas>
+                        <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+                            <button id="sig-modal-cancel" class="calc-btn outline-btn" style="margin: 0; width: auto; padding: 0.5rem 1rem;">Cancel</button>
+                            <button id="sig-modal-clear" class="calc-btn danger-outline-btn" style="margin: 0; width: auto; padding: 0.5rem 1rem;">Clear Ink</button>
+                            <button id="sig-modal-insert" class="calc-btn" style="margin: 0; width: auto; padding: 0.5rem 1.5rem; background-color: var(--primary-color);">Insert Signature</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 7. LIVE COMMS (Secret Panel) -->
+        <section id="chat-panel" class="tab-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;"></h2>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
                     <button id="chat-user-gear" class="calc-btn outline-btn" style="display: none; width: auto !important; padding: 0.3rem 0.6rem !important; font-size: 0.75rem !important; margin-bottom: 0;">Profile</button>
-                    
                     <button id="chat-admin-gear" class="calc-btn outline-btn" style="width: auto !important; padding: 0.3rem 0.6rem !important; font-size: 0.75rem !important; margin-bottom: 0;">
                         Admin Settings <span id="admin-main-badge" style="display: none; color: var(--danger-color); font-weight: bold; margin-left: 2px;">(0)</span>
                     </button>
@@ -230,20 +346,15 @@
 
             <div id="user-settings-container" class="chat-state-container" style="display: none; border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; background-color: var(--bg-color); margin-bottom: 1.5rem;">
                 <h3 style="margin-bottom: 1rem;">Update Profile</h3>
-                
                 <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                     <input type="text" id="new-nickname-input" placeholder="New Nickname" autocomplete="off">
-                    
                     <input type="password" id="new-password-input" placeholder="New Password (leave blank to keep current)" autocomplete="off">
-                    
                     <button id="save-profile-btn" class="calc-btn" style="width: 100%; margin-top: 0.5rem;">Save Changes</button>
-
                     <button id="chat-logout-btn" class="calc-btn outline-btn danger-outline-btn" style="margin-top: 1rem;">Log Out</button>
                 </div>
             </div>
 
             <div id="admin-master-container" class="chat-state-container" style="display: none; border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; background-color: var(--bg-color); margin-bottom: 1.5rem;">
-                
                 <div id="chat-admin-login">
                     <h3 style="margin-bottom: 1rem;">Comms Override</h3>
                     <div style="display: flex; gap: 0.5rem;">
@@ -265,7 +376,6 @@
                         </div>
                     </div>
 
-
                     <div class="admin-collapse-group" style="margin-bottom: 0;">
                         <button class="collapse-btn" onclick="toggleCollapse('active-collapse')">
                             All Members <span id="active-count-badge" class="count-badge">0</span>
@@ -273,6 +383,18 @@
                         <div id="active-collapse" class="collapse-content">
                             <ul id="active-users-list" class="user-list">
                                 <li class="empty-list">No active members yet.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Tab Security Controls -->
+                    <div style="margin-top: 1rem; border: 1px solid var(--border-color); padding: 0.5rem; border-radius: 4px;">
+                        <button class="collapse-btn" style="width: 100%; text-align: left; background: none; border: none; color: var(--text-color); font-weight: bold; cursor: pointer; display: flex; justify-content: space-between;">
+                            Tab Security Controls <span>▼</span>
+                        </button>
+                        <div class="collapse-content">
+                            <ul id="admin-tab-locks" style="list-style: none; padding: 0; margin: 0; margin-top: 0.5rem;">
+                                
                             </ul>
                         </div>
                     </div>
@@ -287,15 +409,16 @@
                 </div>
             </div>
 
-
             <div id="chat-auth-view" class="chat-state-container">
                 <div class="auth-card" style="margin-top: 0;">
                     <h3 id="auth-title" style="margin-bottom: 1rem; text-align: center;">Member Login</h3>
+                    <!-- NEW: Locked Tab Warning Banner -->
+    <div id="tab-locked-warning" style="display: none; background-color: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid #dc3545; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.9rem; text-align: center;">
+        <!-- Text injected by JS -->
+    </div>
                     <input type="text" id="chat-username" placeholder="Nickname" autocomplete="off">
                     <input type="password" id="chat-password" placeholder="Password" autocomplete="off" style="margin-top: 0.75rem;">
-                    
                     <button id="chat-auth-btn" class="calc-btn" style="width: 100%; margin-top: 1rem;">Login</button>
-                    
                     <div style="text-align: center; margin-top: 1rem; font-size: 0.85rem;">
                         <span id="auth-switch-text" style="color: var(--text-muted);">Need access? </span>
                         <button id="auth-toggle-mode" class="text-btn" style="color: var(--primary-color);">Register here</button>
@@ -320,20 +443,54 @@
                     <button id="chat-send-btn" class="calc-btn" style="padding: 0 1.5rem !important;">Send</button>
                 </div>
             </div>
-
-        </div>
+        </section>
     </main>
 
     <footer class="app-footer">
-        BOpis | &copy; 2026 v2.5.0 | <span id="secret-comms-trigger" class="boring-version-link">Live Comms</span>
+        BOpis | &copy; 2026 v3.0.0 | <span id="secret-comms-trigger" class="boring-version-link">Live Comms</span>
     </footer>
+
+    <!-- =========================================
+         FLOATING WEBCAM (FAB & OVERLAY)
+    ========================================= -->
+    
+    <!-- The Circular Action Button -->
+    <button id="webcam-fab" title="Toggle Live Camera">
+        <i class="bi bi-camera-video"></i>
+    </button>
+
+    <!-- The Draggable Camera Window -->
+    <div id="webcam-window" style="display: none;">
+        <div id="webcam-header">
+            <span style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: bold;">
+                <i class="bi bi-record-circle" style="color: var(--danger-color, #ff4757);"></i> Live
+            </span>
+            
+            <!-- NEW: Controls Group -->
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <button id="webcam-capture-btn" class="text-btn" title="Copy Snapshot to Clipboard" style="color: var(--text-color); font-size: 1rem; padding: 0 4px;">
+                    <i class="bi bi-camera"></i>
+                </button>
+                <button id="webcam-pip-btn" class="text-btn" title="True Picture-in-Picture" style="color: var(--text-color); font-size: 1.1rem; padding: 0 4px;">
+                    <i class="bi bi-pip"></i>
+                </button>
+                <div style="width: 1px; height: 16px; background: var(--border-color); margin: 0 4px;"></div>
+                <button id="webcam-close-btn" class="text-btn" title="Close" style="color: var(--text-color); font-size: 1.3rem; padding: 0 4px;">&times;</button>
+            </div>
+        </div>
+        <!-- scaleX(-1) creates the mirror effect so left/right don't feel reversed -->
+        <video id="webcam-video" autoplay playsinline style="width: 100%; height: auto; display: block; background: #000; transform: scaleX(-1); border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;"></video>
+    </div>
 
     <!-- Firebase Libraries -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
+    <!-- Local Scripts (All safely loaded at the end of the document) -->
     <script src="js/data.js"></script>
+    <script src="js/webcam.js"></script>
     <script src="js/script.js"></script>
     <script src="js/chat.js"></script>
+    <script src="js/pdf-editor.js"></script>
 </body>
 </html>
