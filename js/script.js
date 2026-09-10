@@ -85,16 +85,73 @@ if(hamburgerBtn) {
 
 tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
+        const targetId = btn.dataset.target;
+        
+        // --- 1. SECURITY CHECK ---
+        const isLocked = window.bopisTabLocks && window.bopisTabLocks[targetId];
+        
+        // Check if user is logged in and approved
+        const session = localStorage.getItem('bopis_chat_session');
+        let isAuthorized = false;
+        
+        if (session) {
+            try {
+                const user = JSON.parse(session);
+                if (user && (user.status === 'approved' || user.id === 'admin')) {
+                    isAuthorized = true;
+                }
+            } catch(e) {}
+        }
+
+        const chatTabPanel = document.getElementById('chat-panel');
+
+        // If locked and not authorized, bounce them to the login screen!
+        if (isLocked && !isAuthorized) {
+
+            const warningBox = document.getElementById('tab-locked-warning');
+            if (warningBox) {
+                warningBox.innerHTML = `🔒 <strong>${btn.innerText}</strong> is locked.<br>Please log in to verify access.`;
+                warningBox.style.display = 'block';
+            }
+            
+            if (chatTabPanel) {
+                // Hide all normal tabs
+                tabPanels.forEach(p => {
+                    p.style.display = 'none';
+                    p.classList.remove('active');
+                });
+                tabBtns.forEach(b => b.classList.remove('active'));
+                
+                // Force the login/chat panel to show
+                chatTabPanel.style.display = 'block';
+                chatTabPanel.classList.add('active');
+            }
+            
+            if (window.innerWidth <= 768 && navTabs) {
+                navTabs.classList.remove('open');
+            }
+            return; // STOP! Do not run the rest of the tab switching code.
+        }
+
+        // --- 2. NORMAL TAB SWITCHING ---
+        // If they clicked an authorized tab, cleanly hide the chat panel
+        if (chatTabPanel) {
+            chatTabPanel.style.display = 'none';
+            chatTabPanel.classList.remove('active');
+        }
+
         tabBtns.forEach(b => b.classList.remove('active'));
         
         tabPanels.forEach(p => {
             if (!p.classList.contains('floating-mode')) {
                 p.classList.remove('active');
+                // Ensure inline display is cleared so it doesn't stay hidden forever
+                if (p.id !== 'chat-panel') p.style.display = ''; 
             }
         });
         
         btn.classList.add('active');
-        const target = document.getElementById(btn.dataset.target);
+        const target = document.getElementById(targetId);
         if (target) target.classList.add('active');
 
         if (window.innerWidth <= 768 && navTabs) {
@@ -431,93 +488,7 @@ setInterval(updateClocks, 1000);
 updateClocks();
 
 
-// --- 3. Floating Webcam (Picture-in-Picture, Capture, Kill Switch) ---
-const video = document.getElementById('webcam-video');
-const startWebcamBtn = document.getElementById('start-webcam-btn');
-const stopWebcamBtn = document.getElementById('stop-webcam-btn');
-const pipBtn = document.getElementById('pip-btn');
-const captureBtn = document.getElementById('capture-btn');
-
-if (startWebcamBtn) {
-    startWebcamBtn.addEventListener('click', async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            video.srcObject = stream;
-            
-            pipBtn.disabled = false;
-            captureBtn.disabled = false;
-            stopWebcamBtn.disabled = false;
-            
-            startWebcamBtn.disabled = true;
-            startWebcamBtn.innerText = "Webcam Active";
-        } catch (err) {
-            alert("Could not access webcam. Please check permissions.");
-        }
-    });
-}
-
-if (stopWebcamBtn) {
-    stopWebcamBtn.addEventListener('click', () => {
-        if (document.pictureInPictureElement) {
-            document.exitPictureInPicture().catch(err => console.log(err));
-        }
-
-        if (video && video.srcObject) {
-            const tracks = video.srcObject.getTracks();
-            tracks.forEach(track => track.stop());
-            video.srcObject = null;
-        }
-
-        pipBtn.disabled = true;
-        captureBtn.disabled = true;
-        stopWebcamBtn.disabled = true;
-        
-        startWebcamBtn.disabled = false;
-        startWebcamBtn.innerText = "Start Webcam";
-    });
-}
-
-if (pipBtn) {
-    pipBtn.addEventListener('click', async () => {
-        if (document.pictureInPictureElement) {
-            document.exitPictureInPicture();
-        } else if (document.pictureInPictureEnabled) {
-            try {
-                await video.requestPictureInPicture();
-            } catch(err) {
-                alert("Picture-in-Picture failed.");
-            }
-        }
-    });
-}
-
-if (captureBtn) {
-    captureBtn.addEventListener('click', async () => {
-        if (!video.srcObject) return;
-
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        canvas.toBlob(async (blob) => {
-            try {
-                const item = new ClipboardItem({ 'image/png': blob });
-                await navigator.clipboard.write([item]);
-                
-                const originalText = captureBtn.innerText;
-                captureBtn.innerText = "✅ Copied!";
-                setTimeout(() => { captureBtn.innerText = originalText; }, 2000);
-            } catch (err) {
-                alert("Failed to copy image. Your browser might block clipboard access without secure HTTPS.");
-            }
-        }, 'image/png');
-    });
-}
-
-
-// --- 4. Calculator (Tricky Split Div, History, Keyboard Fix) ---
+// --- 3. Calculator (Tricky Split Div, History, Keyboard Fix) ---
 const calcDisplay = document.getElementById('calc-display');
 const calcNumpad = document.getElementById('calc-numpad');
 const toggleNumpadBtn = document.getElementById('toggle-numpad-btn');
@@ -657,7 +628,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 
-// --- 5. Quick Notes ---
+// --- 4. Quick Notes ---
 const noteArea = document.getElementById('note-area');
 const noteCounter = document.getElementById('note-counter');
 const savedNote = localStorage.getItem('quick_notes');
@@ -769,7 +740,7 @@ if (notesPanel && localStorage.getItem('notes_floating') === 'true' && window.in
 
 
 // ==========================================
-// 8. FIREBASE ANNOUNCEMENT BOARD
+// 5. FIREBASE ANNOUNCEMENT BOARD
 // ==========================================
 const announcementBoard = document.getElementById('announcement-board');
 const announcementText = document.getElementById('announcement-text');

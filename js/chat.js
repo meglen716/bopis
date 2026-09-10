@@ -348,9 +348,14 @@ document.addEventListener('DOMContentLoaded', () => {
         userSettingsContainer.style.display = 'none';
 
         if (adminMasterContainer.style.display === 'none' || adminMasterContainer.style.display === '') {
+            // --- OPEN ADMIN DASHBOARD (FULL SCREEN) ---
             adminMasterContainer.style.display = 'block';
             
-            // Because isAdminUnlocked is true when you log in, this instantly skips the PIN screen!
+            // Hide the chat interface
+            chatMessages.style.display = 'none';
+            chatInput.parentElement.style.display = 'none'; 
+            
+            // Skip PIN if already unlocked
             if (isAdminUnlocked) {
                 adminLogin.style.display = 'none';
                 adminDashboard.style.display = 'block';
@@ -361,7 +366,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 adminError.style.display = 'none';
             }
         } else {
+            // --- CLOSE ADMIN DASHBOARD (RESTORE CHAT) ---
             adminMasterContainer.style.display = 'none';
+            
+            // Bring back the chat interface by clearing the inline styles.
+            // This perfectly restores your original CSS layout!
+            chatMessages.style.display = ''; 
+            chatInput.parentElement.style.display = ''; 
+            
+            // Auto-scroll to the latest messages when returning
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
     });
 
@@ -533,6 +547,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // 5. Strip admin privileges from the CSS
         document.body.classList.remove('master-admin-active');
         chatMessages.classList.remove('admin-mode-active');
+
+        chatMessages.style.display = '';
+        chatInput.parentElement.style.display = '';
         
         // 6. Clear input fields for safety
         usernameInput.value = '';
@@ -581,23 +598,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             chatTabPanel.style.display = 'block'; 
             chatTabPanel.classList.add('active');
-        });
-
-        // 2. Close trapdoor & RESTORE normal tabs
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Instantly hide the comms panel
-                chatTabPanel.style.display = 'none';
-                chatTabPanel.classList.remove('active');
-                
-                // CRITICAL FIX: Erase the inline 'display: none' from all normal tabs
-                // so your main website's CSS can properly show the clicked tab again!
-                document.querySelectorAll('.tab-panel').forEach(panel => {
-                    if (panel.id !== 'chat-panel') {
-                        panel.style.display = ''; 
-                    }
-                });
-            });
         });
     }
 
@@ -739,4 +739,62 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // ==========================================
+    // G. TAB SECURITY & LOCKS
+    // ==========================================
+    const tabLocksList = document.getElementById('admin-tab-locks');
+    window.bopisTabLocks = {}; // Global variable so script.js can read the locks
+
+    // The tabs we want to control (Make sure IDs match your HTML data-targets)
+    // The IDs now perfectly match the data-target attributes in your HTML
+    const dashboardTabs = [
+        { id: 'alarm', name: 'Alarm Clock' },
+        { id: 'timezones', name: 'U.S Time Zones' }, // Added the missing 's'
+        { id: 'pdf-panel', name: 'PDF Editor' },
+        { id: 'calculator', name: 'Calculator' },
+        { id: 'notes', name: 'Quick Notes' }
+    ];
+
+    // Listen to Firebase for lock changes
+    chatDb.ref('tab_locks').on('value', (snapshot) => {
+        window.bopisTabLocks = snapshot.val() || {};
+        renderTabLocks();
+
+        // --- NEW: AUTO-EVALUATE CURRENT TAB ---
+        // Find whichever tab the user is currently looking at
+        const activeTabBtn = document.querySelector('.tab-btn.active');
+        if (activeTabBtn) {
+            // Force the browser to simulate a click on it. 
+            // This forces script.js to instantly run the security check on load, 
+            // AND instantly boots users if an admin locks the tab while they are using it!
+            activeTabBtn.click();
+        }
+    });
+
+    function renderTabLocks() {
+        if (!tabLocksList) return;
+        tabLocksList.innerHTML = '';
+
+        dashboardTabs.forEach(tab => {
+            const isLocked = window.bopisTabLocks[tab.id] || false;
+            
+            const li = document.createElement('li');
+            li.style = "display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);";
+            
+            li.innerHTML = `
+                <span style="font-size: 0.9rem;"><strong>${tab.name}</strong></span>
+                <button class="calc-btn btn-sm ${isLocked ? 'danger-btn' : 'outline-btn'}" 
+                        onclick="toggleTabLock('${tab.id}', ${!isLocked})" 
+                        style="margin: 0; width: 90px; padding: 0.25rem;">
+                    <i class="bi ${isLocked ? 'bi-lock-fill' : 'bi-unlock'}"></i> ${isLocked ? 'Locked' : 'Unlocked'}
+                </button>
+            `;
+            tabLocksList.appendChild(li);
+        });
+    }
+
+    window.toggleTabLock = function(tabId, lockState) {
+        chatDb.ref(`tab_locks/${tabId}`).set(lockState);
+    };
 });
